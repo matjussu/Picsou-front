@@ -1,0 +1,114 @@
+/* ============================================================
+   Picsou — tokens.css
+   Source de vérité des variables visuelles. Importé globalement.
+   Aucune valeur visuelle en dur ailleurs : tout passe par ces tokens.
+   Voir DESIGN_SYSTEM.md (handoff) pour les règles d'usage.
+   ============================================================ */
+
+:root {
+  /* --- Marque (valeurs brutes) --- */
+  --or: #FFD60A;
+  --encre: #0F0F0F;
+  --papier: #FAF7EF;
+
+  /* --- Sémantique (valeurs brutes) --- */
+  --positif: #14A06B;
+  --depense: #E2563B;   /* usage parcimonieux */
+  --alerte: #D92D20;
+  --neutre: #6B6B66;
+
+  /* --- Rôles : thème CLAIR (défaut) --- */
+  --bg:             #F5F1E6;
+  --surface:        #FCFAF3;
+  --surface-raised: #FFFFFF;
+  --text:           #0F0F0F;
+  --text-secondary: #6B6B66;
+  --text-tertiary:  #9A968B;
+  --border:         rgba(15, 15, 15, .10);
+  --border-strong:  rgba(15, 15, 15, .18);
+  --accent:         #FFD60A;
+  --on-accent:      #0F0F0F;
+  --positive:       #14A06B;
+  --expense:        #E2563B;   /* mise en avant rare ; dépense par défaut = --text */
+  --danger:         #D92D20;
+  --focus-ring:     #0F0F0F;
+
+  /* --- Typographie --- */
+  --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  --text-hero: 56px;
+  --text-h1:   24px;
+  --text-h2:   20px;
+  --text-body: 16px;
+  --text-sm:   14px;
+  --text-meta: 12px;
+
+  /* --- Espacement (base 4) --- */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px;
+
+  /* --- Rayons --- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* --- Élévation (réservée modales / menus) --- */
+  --shadow-pop: 0 8px 24px rgba(15, 15, 15, .12);
+
+  /* --- Motion --- */
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 240ms;
+
+  /* --- Layout --- */
+  --container-max: 1120px;
+  --bp-sm: 640px; --bp-md: 768px; --bp-lg: 1024px; --bp-xl: 1280px;
+}
+
+/* --- Rôles : thème SOMBRE --- */
+[data-theme="dark"] {
+  --bg:             #0C0C0C;
+  --surface:        #161616;
+  --surface-raised: #1E1E1E;
+  --text:           #FAF7EF;
+  --text-secondary: #A8A69E;
+  --text-tertiary:  #6F6D66;
+  --border:         rgba(250, 247, 239, .12);
+  --border-strong:  rgba(250, 247, 239, .20);
+  --accent:         #FFD60A;
+  --on-accent:      #0F0F0F;
+  --positive:       #2FBF84;
+  --expense:        #F0997B;
+  --danger:         #F0584D;
+  --focus-ring:     #FFD60A;
+  --shadow-pop:     0 8px 24px rgba(0, 0, 0, .5);
+}
+
+/* ============================================================
+   Helpers transverses
+   ============================================================ */
+
+/* Chiffres : toujours tabulaires (alignés à droite en liste) */
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Focus accessible */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Respect des préférences de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

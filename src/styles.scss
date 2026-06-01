@@ -1,4 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Pont Angular Material M3 (DESIGN_SYSTEM §11).
+   Palette tonale jaune ≈ Or Picsou pour les rôles Material ; la couleur de marque
+   exacte (#FFD60A) reste pilotée par tokens.css sur les composants. Thème full dark. */
+html {
+  color-scheme: dark;
+
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$yellow-palette,
+        tertiary: mat.$yellow-palette,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: 'tnum';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Bebas Neue : wordmark, chiffres héros, grands titres uniquement (jamais des phrases). */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+/* Élévation = bordures 0.5px, pas d'ombres (DESIGN_SYSTEM). --shadow-pop réservé modales/menus. */
+.mat-mdc-card.mat-mdc-card {
+  background: var(--surface);
+  color: var(--text);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
