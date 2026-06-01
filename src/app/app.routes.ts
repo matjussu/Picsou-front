@@ -19,13 +19,32 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/shell.component').then((m) => m.ShellComponent),
     children: [
       {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard-page.component').then(
+            (m) => m.DashboardPageComponent,
+          ),
+      },
+      {
         path: 'transactions',
         loadComponent: () =>
           import('./features/transactions/transactions-page.component').then(
             (m) => m.TransactionsPageComponent,
           ),
       },
-      { path: '', redirectTo: 'transactions', pathMatch: 'full' },
+      {
+        path: 'goals',
+        loadComponent: () =>
+          import('./features/goals/goals-page.component').then((m) => m.GoalsPageComponent),
+      },
+      {
+        path: 'goals/:id',
+        loadComponent: () =>
+          import('./features/goals/goal-detail-page.component').then(
+            (m) => m.GoalDetailPageComponent,
+          ),
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: '' },
