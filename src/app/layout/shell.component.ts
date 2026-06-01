@@ -228,10 +228,10 @@ export class ShellComponent {
   readonly initial = (this.firstName.charAt(0) || 'U').toUpperCase();
 
   readonly nav: NavItem[] = [
-    { label: 'Dashboard', icon: LayoutDashboard, route: null },
+    { label: 'Dashboard', icon: LayoutDashboard, route: '/dashboard' },
     { label: 'Transactions', icon: ArrowLeftRight, route: '/transactions' },
     { label: 'Coloc', icon: Users, route: null },
-    { label: 'Objectifs', icon: Target, route: null },
+    { label: 'Objectifs', icon: Target, route: '/goals' },
     { label: 'Insights', icon: Sparkles, route: null },
     { label: 'Réglages', icon: Settings, route: null },
   ];
