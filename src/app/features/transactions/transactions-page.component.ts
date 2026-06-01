@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
+  Calendar,
   ChevronDown,
   CreditCard,
   Landmark,
@@ -30,10 +31,12 @@ import { TransactionService } from './data/transaction.service';
 import { eur } from './util/currency';
 
 interface ActiveChip {
-  key: keyof TransactionFilters;
+  key: keyof TransactionFilters | 'period';
   label: string;
   primary: boolean;
 }
+
+type PeriodPreset = 'month' | '30d';
 
 /**
  * Écran Transactions (handoff §2).
@@ -75,6 +78,24 @@ interface ActiveChip {
             (ngModelChange)="onQueryChange($event)"
           />
         </div>
+
+        <!-- Période -->
+        <button
+          type="button"
+          class="chip"
+          [class.active]="period()"
+          [matMenuTriggerFor]="periodMenu"
+        >
+          <lucide-icon [img]="icons.Calendar" [size]="15" class="chip-icon"></lucide-icon>
+          <span class="chip-label">Période</span>
+          <span class="chip-value">{{ periodLabel() }}</span>
+          <lucide-icon [img]="icons.ChevronDown" [size]="14"></lucide-icon>
+        </button>
+        <mat-menu #periodMenu="matMenu" class="picsou-menu">
+          <button mat-menu-item (click)="setPeriod('month')">Ce mois</button>
+          <button mat-menu-item (click)="setPeriod('30d')">30 derniers jours</button>
+          <button mat-menu-item (click)="setPeriod(null)">Tout</button>
+        </mat-menu>
 
         <!-- Catégorie -->
         <button
@@ -130,11 +151,49 @@ interface ActiveChip {
           <button mat-menu-item (click)="setType('income')">Revenu</button>
         </mat-menu>
 
-        <button type="button" class="btn ghost" [matMenuTriggerFor]="typeMenu">
+        <button
+          type="button"
+          class="btn ghost"
+          [class.active]="showAdvanced()"
+          [attr.aria-expanded]="showAdvanced()"
+          (click)="toggleAdvanced()"
+        >
           <lucide-icon [img]="icons.SlidersHorizontal" [size]="18"></lucide-icon>
           Filtres
         </button>
       </div>
+
+      <!-- Filtres avancés (montant) — tape le back via minAmount/maxAmount -->
+      @if (showAdvanced()) {
+        <div class="advanced">
+          <label class="adv-field">
+            <span>Montant min</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="0,00"
+              [ngModel]="filters().minAmount"
+              (ngModelChange)="setMinAmount($event)"
+            />
+            <span class="adv-unit">€</span>
+          </label>
+          <label class="adv-field">
+            <span>Montant max</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="—"
+              [ngModel]="filters().maxAmount"
+              (ngModelChange)="setMaxAmount($event)"
+            />
+            <span class="adv-unit">€</span>
+          </label>
+        </div>
+      }
 
       <!-- Filtres actifs -->
       @if (activeChips().length > 0) {
@@ -344,6 +403,49 @@ interface ActiveChip {
     .chip-value {
       color: var(--text);
       font-weight: 500;
+    }
+
+    /* Panneau filtres avancés (montant) */
+    .advanced {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-5);
+      padding: var(--space-4);
+      background: var(--surface-raised);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .adv-field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .adv-field > span:first-child {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .adv-field input {
+      width: 120px;
+      height: 40px;
+      padding: 0 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+    .adv-field input:focus {
+      outline: none;
+      border-color: var(--border-strong);
+    }
+    .adv-unit {
+      color: var(--text-tertiary);
+    }
+    .btn.ghost.active {
+      border-color: var(--accent);
+      color: var(--text);
     }
     .chip lucide-icon:last-child {
       color: var(--text-tertiary);
@@ -606,6 +708,7 @@ export class TransactionsPageComponent {
   readonly icons: {
     Plus: LucideIconData;
     Search: LucideIconData;
+    Calendar: LucideIconData;
     ChevronDown: LucideIconData;
     Landmark: LucideIconData;
     SlidersHorizontal: LucideIconData;
@@ -614,6 +717,7 @@ export class TransactionsPageComponent {
   } = {
     Plus,
     Search,
+    Calendar,
     ChevronDown,
     Landmark,
     SlidersHorizontal,
@@ -627,6 +731,8 @@ export class TransactionsPageComponent {
   readonly categories = signal<Category[]>([]);
   readonly accounts = signal<Account[]>([]);
   readonly loading = signal(false);
+  readonly period = signal<PeriodPreset | null>(null);
+  readonly showAdvanced = signal(false);
 
   private queryDebounce?: ReturnType<typeof setTimeout>;
 
@@ -662,6 +768,10 @@ export class TransactionsPageComponent {
     const t = this.filters().type;
     return t === 'income' ? 'Revenu' : t === 'expense' ? 'Dépense' : 'Tous';
   });
+  readonly periodLabel = computed(() => {
+    const p = this.period();
+    return p === 'month' ? 'Ce mois' : p === '30d' ? '30 derniers jours' : 'Tout';
+  });
 
   readonly activeChips = computed<ActiveChip[]>(() => {
     const f = this.filters();
@@ -689,6 +799,15 @@ export class TransactionsPageComponent {
         label: f.type === 'income' ? 'Revenu' : 'Dépense',
         primary: chips.length === 0,
       });
+    }
+    if (this.period()) {
+      chips.push({ key: 'period', label: this.periodLabel(), primary: chips.length === 0 });
+    }
+    if (f.minAmount != null) {
+      chips.push({ key: 'minAmount', label: `≥ ${eur(f.minAmount)}`, primary: chips.length === 0 });
+    }
+    if (f.maxAmount != null) {
+      chips.push({ key: 'maxAmount', label: `≤ ${eur(f.maxAmount)}`, primary: chips.length === 0 });
     }
     return chips;
   });
@@ -746,11 +865,57 @@ export class TransactionsPageComponent {
     this.patch({ type });
   }
 
-  removeFilter(key: keyof TransactionFilters): void {
+  /** Preset de période → calcule from/to (locaux) puis re-fetch backend. */
+  setPeriod(preset: PeriodPreset | null): void {
+    if (!preset) {
+      this.period.set(null);
+      this.patch({ from: null, to: null });
+      return;
+    }
+    const now = new Date();
+    let from: Date;
+    let to: Date;
+    if (preset === 'month') {
+      from = new Date(now.getFullYear(), now.getMonth(), 1);
+      to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else {
+      to = now;
+      from = new Date(now);
+      from.setDate(now.getDate() - 29);
+    }
+    this.period.set(preset);
+    this.patch({ from: this.toIso(from), to: this.toIso(to) });
+  }
+
+  toggleAdvanced(): void {
+    this.showAdvanced.update((v) => !v);
+  }
+
+  setMinAmount(value: number | null): void {
+    this.patch({ minAmount: value != null && `${value}` !== '' ? value : null });
+  }
+
+  setMaxAmount(value: number | null): void {
+    this.patch({ maxAmount: value != null && `${value}` !== '' ? value : null });
+  }
+
+  removeFilter(key: keyof TransactionFilters | 'period'): void {
+    if (key === 'period') {
+      this.period.set(null);
+      this.patch({ from: null, to: null });
+      return;
+    }
     if (key === 'q') {
       this.query.set('');
     }
     this.patch({ [key]: null } as Partial<TransactionFilters>);
+  }
+
+  /** Date locale → 'yyyy-MM-dd' (évite le décalage UTC de toISOString). */
+  private toIso(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+      d.getDate(),
+    ).padStart(2, '0')}`;
   }
 
   openAdd(): void {

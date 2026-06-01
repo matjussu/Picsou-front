@@ -117,4 +117,39 @@ describe('TransactionsPageComponent', () => {
     const texts = Array.from(amounts).map((el) => (el as HTMLElement).textContent?.trim());
     expect(texts.some((t) => t?.startsWith('+'))).toBeTrue();
   });
+
+  it('Période preset sends from/to to the backend (date filter is server-side) + active chip', () => {
+    fixture.componentInstance.setPeriod('month');
+    fixture.detectChanges();
+
+    const args = txServiceSpy.search.calls.mostRecent().args[0] as TransactionFilters;
+    expect(args.from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(args.to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(args.from! <= args.to!).toBeTrue();
+    expect(
+      fixture.componentInstance
+        .activeChips()
+        .some((c) => c.key === 'period' && c.label === 'Ce mois'),
+    ).toBeTrue();
+  });
+
+  it('removing the Période chip clears from/to via a backend re-fetch', () => {
+    fixture.componentInstance.setPeriod('30d');
+    fixture.detectChanges();
+    expect(txServiceSpy.search.calls.mostRecent().args[0]?.from).toBeTruthy();
+
+    fixture.componentInstance.removeFilter('period');
+    fixture.detectChanges();
+
+    const args = txServiceSpy.search.calls.mostRecent().args[0] as TransactionFilters;
+    expect(args.from).toBeNull();
+    expect(args.to).toBeNull();
+    expect(fixture.componentInstance.period()).toBeNull();
+  });
+
+  it('Montant min filter is sent to the backend (minAmount query param)', () => {
+    fixture.componentInstance.setMinAmount(50);
+    fixture.detectChanges();
+    expect(txServiceSpy.search.calls.mostRecent().args[0]?.minAmount).toBe(50);
+  });
 });
