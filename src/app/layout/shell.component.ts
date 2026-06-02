@@ -230,7 +230,7 @@ export class ShellComponent {
   readonly nav: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard, route: '/dashboard' },
     { label: 'Transactions', icon: ArrowLeftRight, route: '/transactions' },
-    { label: 'Coloc', icon: Users, route: null },
+    { label: 'Coloc', icon: Users, route: '/coloc' },
     { label: 'Objectifs', icon: Target, route: '/goals' },
     { label: 'Insights', icon: Sparkles, route: null },
     { label: 'Réglages', icon: Settings, route: null },
