@@ -1,6 +1,6 @@
 // Replaced at build time via angular.json fileReplacements (production config).
-// Update apiBaseUrl with the real Render URL once the back is deployed (T15).
+// Pointe sur le back déployé sur Render (garder le /api : les controllers sont sous /api).
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://picsou-back-XXXX.onrender.com/api',
+  apiBaseUrl: 'https://picsou-back.onrender.com/api',
 };
