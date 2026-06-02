@@ -47,8 +47,9 @@ interface MonthBar {
  * Dashboard (handoff §1) — hub.
  * Stats (DashboardService.summary) · graphe mensuel ApexCharts (DashboardService.monthly) ·
  * répartition catégories (CSS bars, DashboardService.categoryBreakdown) · transactions récentes
- * (TransactionService.search size 6) · mini-objectifs (GoalService.list) · Insight AI = CTA inerte
- * (P6) · Projection fin de mois = placeholder muet (P6). Aucune agrégation client : tout vient du back.
+ * (TransactionService.search size 6) · mini-objectifs (GoalService.list) · tuile « solde projeté fin
+ * de mois » (PredictionService) · CTA Insight AI → /insights. Aucune agrégation client : tout vient
+ * du back.
  *
  * NOTE charts : ng-apexcharts 2.4.0 exige Angular >=20 (importe `afterEveryRender`, absent en 19.2,
  * échec de build). Fallback assumé sur des barres CSS tokenisées (mois courant en Or, reste neutre),
@@ -211,18 +212,6 @@ interface MonthBar {
             }
           </div>
 
-          <!-- Projection fin de mois (placeholder P6) -->
-          <div class="card projection-stub">
-            <div class="section-head">
-              <h2 class="card-title">Projection fin de mois</h2>
-              <span class="soon-pill">Bientôt</span>
-            </div>
-            <p class="stub-body">
-              La projection de ton solde de fin de mois arrive bientôt — Picsou
-              anticipera tes dépenses à venir à partir de tes habitudes.
-            </p>
-          </div>
-
           <!-- Transactions récentes -->
           <div class="card">
             <div class="section-head">
@@ -304,18 +293,13 @@ interface MonthBar {
               </div>
               <div class="insight-title">Comprendre mon mois en une phrase</div>
               <p class="insight-body">
-                Picsou analysera tes dépenses et t'expliquera l'essentiel, en
-                français. Bientôt disponible.
+                Picsou analyse tes dépenses et t'explique l'essentiel, en
+                français.
               </p>
-              <button
-                type="button"
-                class="btn primary sm"
-                disabled
-                aria-disabled="true"
-              >
+              <a class="btn primary sm" routerLink="/insights">
                 <lucide-icon [img]="icons.ArrowRight" [size]="16"></lucide-icon>
                 Comprendre mon mois
-              </button>
+              </a>
             </div>
           </div>
 
@@ -564,25 +548,6 @@ interface MonthBar {
     .err-icon {
       color: var(--danger);
       flex-shrink: 0;
-    }
-
-    /* Projection placeholder */
-    .projection-stub .soon-pill {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      color: var(--text-tertiary);
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-pill);
-      padding: 4px 10px;
-    }
-    .stub-body {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.55;
-      color: var(--text-secondary);
     }
 
     /* Transactions */
