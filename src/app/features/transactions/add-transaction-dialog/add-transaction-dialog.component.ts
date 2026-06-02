@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,9 +15,11 @@ import {
   Landmark,
   LucideAngularModule,
   LucideIconData,
+  ScanLine,
   Tag,
   X,
 } from 'lucide-angular';
+import { OcrService } from '../../insights/data/ocr.service';
 
 import { AccountService } from '../data/account.service';
 import { CategoryService } from '../data/category.service';
@@ -53,7 +56,9 @@ import { TransactionService } from '../data/transaction.service';
       <header class="head">
         <div>
           <h2 class="title">Nouvelle transaction</h2>
-          <p class="subtitle">Renseigne une description et Picsou suggère la catégorie.</p>
+          <p class="subtitle">
+            Renseigne une description et Picsou suggère la catégorie.
+          </p>
         </div>
         <button
           type="button"
@@ -66,6 +71,19 @@ import { TransactionService } from '../data/transaction.service';
       </header>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="body">
+        <!-- Scanner un reçu (OCR vision) → pré-remplit le formulaire -->
+        <label class="scan-btn" [class.busy]="scanning()">
+          <lucide-icon [img]="icons.ScanLine" [size]="18"></lucide-icon>
+          {{ scanning() ? 'Analyse du reçu…' : 'Scanner un reçu' }}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="scanReceipt($event)"
+            [disabled]="scanning()"
+            hidden
+          />
+        </label>
+
         <!-- Segmented Dépense / Revenu -->
         <mat-button-toggle-group
           class="segmented"
@@ -78,7 +96,11 @@ import { TransactionService } from '../data/transaction.service';
             Dépense
           </mat-button-toggle>
           <mat-button-toggle value="income">
-            <lucide-icon [img]="icons.ArrowUpRight" [size]="16" class="pos"></lucide-icon>
+            <lucide-icon
+              [img]="icons.ArrowUpRight"
+              [size]="16"
+              class="pos"
+            ></lucide-icon>
             Revenu
           </mat-button-toggle>
         </mat-button-toggle-group>
@@ -123,8 +145,17 @@ import { TransactionService } from '../data/transaction.service';
         <div class="grid-2">
           <div class="field">
             <label class="label" for="category">Catégorie</label>
-            <mat-form-field appearance="outline" class="picsou-select" subscriptSizing="dynamic">
-              <lucide-icon matPrefix [img]="icons.Tag" [size]="17" class="prefix"></lucide-icon>
+            <mat-form-field
+              appearance="outline"
+              class="picsou-select"
+              subscriptSizing="dynamic"
+            >
+              <lucide-icon
+                matPrefix
+                [img]="icons.Tag"
+                [size]="17"
+                class="prefix"
+              ></lucide-icon>
               <mat-select
                 id="category"
                 formControlName="categoryId"
@@ -142,8 +173,17 @@ import { TransactionService } from '../data/transaction.service';
           <div class="field">
             <label class="label" for="date">Date</label>
             <div class="text-box date-box">
-              <lucide-icon [img]="icons.Calendar" [size]="16" class="prefix"></lucide-icon>
-              <input id="date" type="date" formControlName="date" class="date-input" />
+              <lucide-icon
+                [img]="icons.Calendar"
+                [size]="16"
+                class="prefix"
+              ></lucide-icon>
+              <input
+                id="date"
+                type="date"
+                formControlName="date"
+                class="date-input"
+              />
             </div>
           </div>
         </div>
@@ -151,8 +191,17 @@ import { TransactionService } from '../data/transaction.service';
         <!-- Compte -->
         <div class="field">
           <label class="label" for="account">Compte</label>
-          <mat-form-field appearance="outline" class="picsou-select" subscriptSizing="dynamic">
-            <lucide-icon matPrefix [img]="icons.Landmark" [size]="16" class="prefix"></lucide-icon>
+          <mat-form-field
+            appearance="outline"
+            class="picsou-select"
+            subscriptSizing="dynamic"
+          >
+            <lucide-icon
+              matPrefix
+              [img]="icons.Landmark"
+              [size]="16"
+              class="prefix"
+            ></lucide-icon>
             <mat-select
               id="account"
               formControlName="accountId"
@@ -168,7 +217,9 @@ import { TransactionService } from '../data/transaction.service';
         </div>
 
         <footer class="actions">
-          <button type="button" class="btn ghost" (click)="cancel()">Annuler</button>
+          <button type="button" class="btn ghost" (click)="cancel()">
+            Annuler
+          </button>
           <button type="submit" class="btn primary" [disabled]="submitting()">
             <lucide-icon [img]="icons.Check" [size]="18"></lucide-icon>
             {{ submitting() ? 'Ajout…' : 'Ajouter la transaction' }}
@@ -219,7 +270,9 @@ import { TransactionService } from '../data/transaction.service';
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+      transition:
+        color var(--dur-fast) var(--ease),
+        border-color var(--dur-fast) var(--ease);
     }
     .close:hover {
       color: var(--text);
@@ -291,7 +344,10 @@ import { TransactionService } from '../data/transaction.service';
       border-radius: var(--radius-sm);
       color: var(--text);
     }
-    .segmented ::ng-deep .mat-button-toggle-checked .mat-button-toggle-label-content {
+    .segmented
+      ::ng-deep
+      .mat-button-toggle-checked
+      .mat-button-toggle-label-content {
       font-weight: 600;
     }
     .segmented lucide-icon.pos {
@@ -428,7 +484,9 @@ import { TransactionService } from '../data/transaction.service';
       font-weight: 600;
       cursor: pointer;
       border: 0.5px solid transparent;
-      transition: filter var(--dur) var(--ease), background var(--dur) var(--ease);
+      transition:
+        filter var(--dur) var(--ease),
+        background var(--dur) var(--ease);
     }
     .btn.ghost {
       flex: 1;
@@ -451,6 +509,28 @@ import { TransactionService } from '../data/transaction.service';
       opacity: 0.55;
       cursor: default;
     }
+    .scan-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      border: 0.5px dashed var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .scan-btn:hover {
+      border-color: var(--accent);
+    }
+    .scan-btn.busy {
+      opacity: 0.6;
+      cursor: default;
+    }
   `,
 })
 export class AddTransactionDialogComponent {
@@ -458,7 +538,10 @@ export class AddTransactionDialogComponent {
   private readonly transactions = inject(TransactionService);
   private readonly categoryService = inject(CategoryService);
   private readonly accountService = inject(AccountService);
-  private readonly dialogRef = inject(MatDialogRef<AddTransactionDialogComponent, Transaction>);
+  private readonly ocr = inject(OcrService);
+  private readonly dialogRef = inject(
+    MatDialogRef<AddTransactionDialogComponent, Transaction>,
+  );
   private readonly snack = inject(MatSnackBar);
 
   readonly icons: {
@@ -468,6 +551,7 @@ export class AddTransactionDialogComponent {
     Tag: LucideIconData;
     Calendar: LucideIconData;
     Landmark: LucideIconData;
+    ScanLine: LucideIconData;
   } = {
     X,
     ArrowUpRight,
@@ -475,15 +559,20 @@ export class AddTransactionDialogComponent {
     Tag,
     Calendar,
     Landmark,
+    ScanLine,
   };
 
   readonly categories = signal<Category[]>([]);
   readonly accounts = signal<Account[]>([]);
   readonly submitting = signal(false);
+  readonly scanning = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     type: ['expense' as TransactionType, Validators.required],
-    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    amount: [
+      null as number | null,
+      [Validators.required, Validators.min(0.01)],
+    ],
     description: ['', Validators.required],
     categoryId: [null as string | null],
     date: [this.today(), Validators.required],
@@ -498,6 +587,44 @@ export class AddTransactionDialogComponent {
     this.accountService.list().subscribe({
       next: (accs) => this.accounts.set(accs),
       error: () => this.accounts.set([]),
+    });
+  }
+
+  /** Scan d'un reçu (vision IA) → pré-remplit montant/description/date ; l'user confirme ensuite. */
+  scanReceipt(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permet de re-sélectionner le même fichier
+    if (!file) {
+      return;
+    }
+    this.scanning.set(true);
+    this.ocr.scanReceipt(file).subscribe({
+      next: (r) => {
+        this.scanning.set(false);
+        if (r.total != null) {
+          this.form.controls.amount.setValue(r.total);
+        }
+        if (r.merchant) {
+          this.form.controls.description.setValue(r.merchant);
+        }
+        if (r.date) {
+          this.form.controls.date.setValue(r.date);
+        }
+        this.snack.open('Reçu scanné — vérifie puis valide.', 'OK', {
+          duration: 2500,
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.scanning.set(false);
+        const msg =
+          err.status === 503
+            ? 'Scan IA non configuré (clé absente).'
+            : err.status === 400
+              ? 'Format d’image non supporté (JPEG, PNG, WebP).'
+              : 'Impossible de scanner le reçu. Réessaie.';
+        this.snack.open(msg, 'OK', { duration: 4000 });
+      },
     });
   }
 
@@ -525,9 +652,13 @@ export class AddTransactionDialogComponent {
       next: (created) => this.dialogRef.close(created),
       error: () => {
         this.submitting.set(false);
-        this.snack.open('Impossible d’ajouter la transaction. Réessaie.', 'OK', {
-          duration: 4000,
-        });
+        this.snack.open(
+          'Impossible d’ajouter la transaction. Réessaie.',
+          'OK',
+          {
+            duration: 4000,
+          },
+        );
       },
     });
   }

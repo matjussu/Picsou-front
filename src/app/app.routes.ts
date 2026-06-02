@@ -6,17 +6,22 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+      import('./features/auth/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
   },
   {
     path: 'signup',
     loadComponent: () =>
-      import('./features/auth/signup/signup.component').then((m) => m.SignupComponent),
+      import('./features/auth/signup/signup.component').then(
+        (m) => m.SignupComponent,
+      ),
   },
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./layout/shell.component').then((m) => m.ShellComponent),
+    loadComponent: () =>
+      import('./layout/shell.component').then((m) => m.ShellComponent),
     children: [
       {
         path: 'dashboard',
@@ -35,12 +40,23 @@ export const routes: Routes = [
       {
         path: 'coloc',
         loadComponent: () =>
-          import('./features/coloc/coloc-page.component').then((m) => m.ColocPageComponent),
+          import('./features/coloc/coloc-page.component').then(
+            (m) => m.ColocPageComponent,
+          ),
       },
       {
         path: 'goals',
         loadComponent: () =>
-          import('./features/goals/goals-page.component').then((m) => m.GoalsPageComponent),
+          import('./features/goals/goals-page.component').then(
+            (m) => m.GoalsPageComponent,
+          ),
+      },
+      {
+        path: 'insights',
+        loadComponent: () =>
+          import('./features/insights/insights-page.component').then(
+            (m) => m.InsightsPageComponent,
+          ),
       },
       {
         path: 'goals/:id',

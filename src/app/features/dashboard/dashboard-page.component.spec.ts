@@ -9,7 +9,13 @@ import { Transaction } from '../transactions/data/transaction.models';
 import { TransactionService } from '../transactions/data/transaction.service';
 import { Goal } from '../goals/data/goal.models';
 import { GoalService } from '../goals/data/goal.service';
-import { CategorySlice, DashboardSummary, MonthlyPoint } from './data/dashboard.models';
+import { PredictionResponse } from '../insights/data/ai.models';
+import { PredictionService } from '../insights/data/prediction.service';
+import {
+  CategorySlice,
+  DashboardSummary,
+  MonthlyPoint,
+} from './data/dashboard.models';
 import { DashboardService } from './data/dashboard.service';
 import { DashboardPageComponent } from './dashboard-page.component';
 
@@ -82,11 +88,26 @@ describe('DashboardPageComponent', () => {
     dashSpy.monthly.and.returnValue(of(MONTHLY));
     dashSpy.categoryBreakdown.and.returnValue(of(CATEGORIES));
 
-    const txSpy = jasmine.createSpyObj<TransactionService>('TransactionService', ['search']);
+    const txSpy = jasmine.createSpyObj<TransactionService>(
+      'TransactionService',
+      ['search'],
+    );
     txSpy.search.and.returnValue(of(TX));
 
     const goalSpy = jasmine.createSpyObj<GoalService>('GoalService', ['list']);
     goalSpy.list.and.returnValue(of(GOALS));
+
+    const predictionSpy = jasmine.createSpyObj<PredictionService>(
+      'PredictionService',
+      ['endOfMonth'],
+    );
+    const PREDICTION: PredictionResponse = {
+      forecastDate: '2026-05-31',
+      predictedBalance: 420,
+      lowConfidence: false,
+      anomalies: [],
+    };
+    predictionSpy.endOfMonth.and.returnValue(of(PREDICTION));
 
     await TestBed.configureTestingModule({
       imports: [DashboardPageComponent],
@@ -98,6 +119,7 @@ describe('DashboardPageComponent', () => {
         { provide: DashboardService, useValue: dashSpy },
         { provide: TransactionService, useValue: txSpy },
         { provide: GoalService, useValue: goalSpy },
+        { provide: PredictionService, useValue: predictionSpy },
       ],
     }).compileComponents();
 

@@ -1,5 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import {
   ArrowLeftRight,
   LayoutDashboard,
@@ -51,7 +56,11 @@ interface NavItem {
                 <span>{{ item.label }}</span>
               </a>
             } @else {
-              <span class="nav-item disabled" aria-disabled="true" title="Bientôt disponible">
+              <span
+                class="nav-item disabled"
+                aria-disabled="true"
+                title="Bientôt disponible"
+              >
                 <lucide-icon [img]="item.icon" [size]="20"></lucide-icon>
                 <span>{{ item.label }}</span>
               </span>
@@ -65,7 +74,12 @@ interface NavItem {
             <span class="user-name">{{ firstName }}</span>
             <span class="user-sub">Compte courant</span>
           </div>
-          <button type="button" class="logout" (click)="logout()" aria-label="Se déconnecter">
+          <button
+            type="button"
+            class="logout"
+            (click)="logout()"
+            aria-label="Se déconnecter"
+          >
             <lucide-icon [img]="icons.LogOut" [size]="18"></lucide-icon>
           </button>
         </div>
@@ -129,7 +143,9 @@ interface NavItem {
       color: var(--text-secondary);
       text-decoration: none;
       cursor: pointer;
-      transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+      transition:
+        background var(--dur-fast) var(--ease),
+        color var(--dur-fast) var(--ease);
     }
     .nav-item lucide-icon {
       color: var(--text-tertiary);
@@ -232,7 +248,7 @@ export class ShellComponent {
     { label: 'Transactions', icon: ArrowLeftRight, route: '/transactions' },
     { label: 'Coloc', icon: Users, route: '/coloc' },
     { label: 'Objectifs', icon: Target, route: '/goals' },
-    { label: 'Insights', icon: Sparkles, route: null },
+    { label: 'Insights', icon: Sparkles, route: '/insights' },
     { label: 'Réglages', icon: Settings, route: null },
   ];
 
