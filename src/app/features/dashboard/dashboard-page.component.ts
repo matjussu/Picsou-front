@@ -18,8 +18,14 @@ import { TokenStorageService } from '../../core/auth/token-storage.service';
 import { Transaction } from '../transactions/data/transaction.models';
 import { TransactionService } from '../transactions/data/transaction.service';
 import { eur } from '../transactions/util/currency';
-import { CategorySlice, DashboardSummary, MonthlyPoint } from './data/dashboard.models';
+import {
+  CategorySlice,
+  DashboardSummary,
+  MonthlyPoint,
+} from './data/dashboard.models';
 import { DashboardService } from './data/dashboard.service';
+import { PredictionResponse } from '../insights/data/ai.models';
+import { PredictionService } from '../insights/data/prediction.service';
 import { Goal } from '../goals/data/goal.models';
 import { GoalService } from '../goals/data/goal.service';
 
@@ -69,12 +75,18 @@ interface MonthBar {
     <section class="body">
       @if (errored()) {
         <div class="card error-card" role="alert">
-          <lucide-icon [img]="icons.AlertTriangle" [size]="18" class="err-icon"></lucide-icon>
+          <lucide-icon
+            [img]="icons.AlertTriangle"
+            [size]="18"
+            class="err-icon"
+          ></lucide-icon>
           <div>
             <strong>Impossible de charger ton tableau de bord.</strong>
             <span>Réessaie dans un instant.</span>
           </div>
-          <button type="button" class="btn ghost sm" (click)="reload()">Réessayer</button>
+          <button type="button" class="btn ghost sm" (click)="reload()">
+            Réessayer
+          </button>
         </div>
       }
 
@@ -85,9 +97,15 @@ interface MonthBar {
           @if (loading()) {
             <span class="skeleton hero-sk"></span>
           } @else {
-            <span class="hero font-display amount" [class.pos]="balancePositive()">{{ balance() }}</span>
+            <span
+              class="hero font-display amount"
+              [class.pos]="balancePositive()"
+              >{{ balance() }}</span
+            >
           }
-          <span class="stat-sub">{{ summary()?.transactionCount ?? 0 }} transactions ce mois</span>
+          <span class="stat-sub"
+            >{{ summary()?.transactionCount ?? 0 }} transactions ce mois</span
+          >
         </div>
         <div class="card stat">
           <span class="eyebrow">Revenus</span>
@@ -109,6 +127,41 @@ interface MonthBar {
         </div>
       </div>
 
+      @if (forecast(); as f) {
+        <div class="card forecast">
+          <div class="forecast-main">
+            <span class="eyebrow">Solde projeté fin de mois</span>
+            <div class="forecast-row">
+              <span
+                class="num font-display amount"
+                [class.pos]="f.predictedBalance >= 0"
+                >{{ forecastValue() }}</span
+              >
+              @if (f.lowConfidence) {
+                <span class="forecast-tag">estimation</span>
+              }
+            </div>
+            <span class="stat-sub"
+              >Projection à partir de ton rythme du mois + historique</span
+            >
+          </div>
+          @if (f.anomalies.length > 0) {
+            <div class="forecast-anomalies">
+              <lucide-icon
+                [img]="icons.AlertTriangle"
+                [size]="16"
+              ></lucide-icon>
+              {{ f.anomalies.length }} catégorie{{
+                f.anomalies.length > 1 ? 's' : ''
+              }}
+              en hausse · {{ topAnomalyLabel(f) }} +{{
+                f.anomalies[0].deltaPct
+              }}&#8201;%
+            </div>
+          }
+        </div>
+      }
+
       <!-- Corps : 2 colonnes -->
       <div class="grid">
         <!-- Colonne gauche -->
@@ -118,13 +171,17 @@ interface MonthBar {
             <div class="section-head">
               <div>
                 <h2 class="card-title">Dépenses mensuelles</h2>
-                <div class="card-sub">12 derniers mois · mois en cours en surbrillance</div>
+                <div class="card-sub">
+                  12 derniers mois · mois en cours en surbrillance
+                </div>
               </div>
             </div>
             @if (loading()) {
               <div class="chart-sk"></div>
             } @else if (monthBars().length === 0) {
-              <p class="inline-empty">Aucune donnée mensuelle pour l'instant.</p>
+              <p class="inline-empty">
+                Aucune donnée mensuelle pour l'instant.
+              </p>
             } @else {
               <div
                 class="month-bars"
@@ -133,7 +190,11 @@ interface MonthBar {
               >
                 @for (b of monthBars(); track b.label) {
                   <div class="month-col">
-                    <span class="month-val amount" [class.current]="b.current">{{ b.amount }}</span>
+                    <span
+                      class="month-val amount"
+                      [class.current]="b.current"
+                      >{{ b.amount }}</span
+                    >
                     <span class="month-bar-wrap">
                       <span
                         class="month-bar"
@@ -141,7 +202,9 @@ interface MonthBar {
                         [style.height.%]="b.heightPct"
                       ></span>
                     </span>
-                    <span class="month-label" [class.current]="b.current">{{ b.label }}</span>
+                    <span class="month-label" [class.current]="b.current">{{
+                      b.label
+                    }}</span>
                   </div>
                 }
               </div>
@@ -155,8 +218,8 @@ interface MonthBar {
               <span class="soon-pill">Bientôt</span>
             </div>
             <p class="stub-body">
-              La projection de ton solde de fin de mois arrive bientôt — Picsou anticipera tes
-              dépenses à venir à partir de tes habitudes.
+              La projection de ton solde de fin de mois arrive bientôt — Picsou
+              anticipera tes dépenses à venir à partir de tes habitudes.
             </p>
           </div>
 
@@ -165,7 +228,11 @@ interface MonthBar {
             <div class="section-head">
               <h2 class="card-title">Transactions récentes</h2>
               <a class="link" routerLink="/transactions">
-                Voir tout <lucide-icon [img]="icons.ChevronRight" [size]="15"></lucide-icon>
+                Voir tout
+                <lucide-icon
+                  [img]="icons.ChevronRight"
+                  [size]="15"
+                ></lucide-icon>
               </a>
             </div>
             @if (loading()) {
@@ -181,13 +248,18 @@ interface MonthBar {
                 @for (t of recent(); track t.id; let last = $last) {
                   <div class="txn-row" [class.last]="last">
                     <span class="cat-icon">
-                      <lucide-icon [img]="icons.CreditCard" [size]="18"></lucide-icon>
+                      <lucide-icon
+                        [img]="icons.CreditCard"
+                        [size]="18"
+                      ></lucide-icon>
                     </span>
                     <div class="txn-meta">
                       <span class="txn-desc">{{ t.description }}</span>
                       <span class="txn-sub">{{ formatDate(t.date) }}</span>
                     </div>
-                    <span class="amount" [class.pos]="t.type === 'income'">{{ amount(t) }}</span>
+                    <span class="amount" [class.pos]="t.type === 'income'">{{
+                      amount(t)
+                    }}</span>
                   </div>
                 }
               </div>
@@ -199,9 +271,29 @@ interface MonthBar {
         <div class="col">
           <!-- Insight AI : CTA inerte (P6) -->
           <div class="insight">
-            <svg class="coin-motif" width="180" height="180" viewBox="0 0 180 180" aria-hidden="true">
-              <circle cx="90" cy="90" r="76" fill="none" stroke="var(--accent)" stroke-width="10" />
-              <circle cx="90" cy="90" r="48" fill="none" stroke="var(--accent)" stroke-width="6" />
+            <svg
+              class="coin-motif"
+              width="180"
+              height="180"
+              viewBox="0 0 180 180"
+              aria-hidden="true"
+            >
+              <circle
+                cx="90"
+                cy="90"
+                r="76"
+                fill="none"
+                stroke="var(--accent)"
+                stroke-width="10"
+              />
+              <circle
+                cx="90"
+                cy="90"
+                r="48"
+                fill="none"
+                stroke="var(--accent)"
+                stroke-width="6"
+              />
             </svg>
             <div class="insight-inner">
               <div class="insight-head">
@@ -212,10 +304,15 @@ interface MonthBar {
               </div>
               <div class="insight-title">Comprendre mon mois en une phrase</div>
               <p class="insight-body">
-                Picsou analysera tes dépenses et t'expliquera l'essentiel, en français. Bientôt
-                disponible.
+                Picsou analysera tes dépenses et t'expliquera l'essentiel, en
+                français. Bientôt disponible.
               </p>
-              <button type="button" class="btn primary sm" disabled aria-disabled="true">
+              <button
+                type="button"
+                class="btn primary sm"
+                disabled
+                aria-disabled="true"
+              >
                 <lucide-icon [img]="icons.ArrowRight" [size]="16"></lucide-icon>
                 Comprendre mon mois
               </button>
@@ -247,7 +344,9 @@ interface MonthBar {
                         [style.width.%]="c.pct"
                       ></span>
                     </span>
-                    <span class="amount cat-amount" [class.lead]="c.lead">{{ c.amount }}</span>
+                    <span class="amount cat-amount" [class.lead]="c.lead">{{
+                      c.amount
+                    }}</span>
                   </div>
                 }
               </div>
@@ -259,7 +358,11 @@ interface MonthBar {
             <div class="section-head">
               <h2 class="card-title">Objectifs</h2>
               <a class="link" routerLink="/goals">
-                Voir tout <lucide-icon [img]="icons.ChevronRight" [size]="15"></lucide-icon>
+                Voir tout
+                <lucide-icon
+                  [img]="icons.ChevronRight"
+                  [size]="15"
+                ></lucide-icon>
               </a>
             </div>
             @if (loading()) {
@@ -269,7 +372,9 @@ interface MonthBar {
                 }
               </div>
             } @else if (miniGoals().length === 0) {
-              <p class="inline-empty">Aucun objectif. Crée-en un depuis Objectifs.</p>
+              <p class="inline-empty">
+                Aucun objectif. Crée-en un depuis Objectifs.
+              </p>
             } @else {
               <div class="goals-mini">
                 @for (g of miniGoals(); track g.id) {
@@ -288,7 +393,11 @@ interface MonthBar {
                     </span>
                     <span class="goal-mini-pct" [class.done]="g.completed">
                       @if (g.completed) {
-                        <lucide-icon [img]="icons.Check" [size]="13"></lucide-icon> Atteint
+                        <lucide-icon
+                          [img]="icons.Check"
+                          [size]="13"
+                        ></lucide-icon>
+                        Atteint
                       } @else {
                         {{ round(g.progressPercent) }}&#8201;%
                       }
@@ -541,7 +650,11 @@ interface MonthBar {
       position: relative;
       overflow: hidden;
       border-radius: var(--radius-lg);
-      background: linear-gradient(150deg, #1b1a14 0%, var(--surface-raised) 60%);
+      background: linear-gradient(
+        150deg,
+        #1b1a14 0%,
+        var(--surface-raised) 60%
+      );
       border: 0.5px solid rgba(255, 214, 10, 0.28);
       padding: var(--space-6);
     }
@@ -803,7 +916,9 @@ interface MonthBar {
       cursor: pointer;
       border: 0.5px solid transparent;
       text-decoration: none;
-      transition: filter var(--dur) var(--ease), background var(--dur) var(--ease);
+      transition:
+        filter var(--dur) var(--ease),
+        background var(--dur) var(--ease);
     }
     .btn.sm {
       min-height: 36px;
@@ -829,6 +944,41 @@ interface MonthBar {
       background: rgba(250, 247, 239, 0.04);
     }
 
+    .forecast {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-5);
+      flex-wrap: wrap;
+    }
+    .forecast-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 2px 0 4px;
+    }
+    .forecast-tag {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-tertiary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 2px 8px;
+    }
+    .forecast-anomalies {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--danger);
+      background: rgba(217, 45, 32, 0.08);
+      border: 0.5px solid rgba(217, 45, 32, 0.25);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+    }
+
     @media (max-width: 1024px) {
       .grid,
       .stats {
@@ -839,6 +989,7 @@ interface MonthBar {
 })
 export class DashboardPageComponent {
   private readonly dashboard = inject(DashboardService);
+  private readonly predictions = inject(PredictionService);
   private readonly transactions = inject(TransactionService);
   private readonly goals = inject(GoalService);
   private readonly storage = inject(TokenStorageService);
@@ -874,10 +1025,21 @@ export class DashboardPageComponent {
   readonly categories = signal<CategorySlice[]>([]);
   readonly recent = signal<Transaction[]>([]);
   readonly miniGoals = signal<Goal[]>([]);
+  readonly forecast = signal<PredictionResponse | null>(null);
 
-  readonly balance = computed(() => eur(this.summary()?.balance ?? null, { plus: true }));
-  readonly balancePositive = computed(() => (this.summary()?.balance ?? 0) >= 0);
-  readonly income = computed(() => eur(this.summary()?.income ?? null, { plus: true }));
+  readonly forecastValue = computed(() =>
+    eur(this.forecast()?.predictedBalance ?? null, { plus: true }),
+  );
+
+  readonly balance = computed(() =>
+    eur(this.summary()?.balance ?? null, { plus: true }),
+  );
+  readonly balancePositive = computed(
+    () => (this.summary()?.balance ?? 0) >= 0,
+  );
+  readonly income = computed(() =>
+    eur(this.summary()?.income ?? null, { plus: true }),
+  );
   readonly expense = computed(() => eur(this.summary()?.expense ?? null));
 
   /** Barres mensuelles CSS (mois courant en Or, hauteur relative au max). */
@@ -906,7 +1068,9 @@ export class DashboardPageComponent {
   });
 
   readonly catRows = computed<CatRow[]>(() => {
-    const sorted = [...this.categories()].sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+    const sorted = [...this.categories()].sort(
+      (a, b) => Math.abs(b.total) - Math.abs(a.total),
+    );
     if (sorted.length === 0) {
       return [];
     }
@@ -948,14 +1112,27 @@ export class DashboardPageComponent {
       error: () => {
         this.loading.set(false);
         this.errored.set(true);
-        this.snack.open('Impossible de charger le tableau de bord.', 'OK', { duration: 4000 });
+        this.snack.open('Impossible de charger le tableau de bord.', 'OK', {
+          duration: 4000,
+        });
       },
     });
+    // Prédiction chargée à part : un échec ne doit pas casser le dashboard (algo, sans clé IA).
+    this.predictions.endOfMonth().subscribe({
+      next: (f) => this.forecast.set(f),
+      error: () => this.forecast.set(null),
+    });
+  }
+
+  topAnomalyLabel(f: PredictionResponse): string {
+    return f.anomalies.length === 0 ? '' : f.anomalies[0].category;
   }
 
   // ── Display helpers ──
   amount(t: Transaction): string {
-    return eur(t.type === 'income' ? t.amount : -t.amount, { plus: t.type === 'income' });
+    return eur(t.type === 'income' ? t.amount : -t.amount, {
+      plus: t.type === 'income',
+    });
   }
 
   saved(g: Goal): string {
