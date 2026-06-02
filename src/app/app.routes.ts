@@ -33,6 +33,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'coloc',
+        loadComponent: () =>
+          import('./features/coloc/coloc-page.component').then((m) => m.ColocPageComponent),
+      },
+      {
         path: 'goals',
         loadComponent: () =>
           import('./features/goals/goals-page.component').then((m) => m.GoalsPageComponent),
