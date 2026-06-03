@@ -28,6 +28,18 @@ export interface InsightResponse {
   facts: InsightFacts;
 }
 
+/** POST /api/insights/ask — question libre. Question 1..500 caractères. */
+export interface AskRequest {
+  question: string;
+}
+
+/** Réponse Q&A IA : prose markdown LLM + métadonnées de coût. */
+export interface AskResponse {
+  answer: string;
+  model: string | null;
+  tokensUsed: number | null;
+}
+
 /** Anomalie de dépense (PredictionResponse.anomalies). */
 export interface Anomaly {
   category: string;

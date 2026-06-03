@@ -5,13 +5,26 @@ import {
   LucideAngularModule,
   LucideIconData,
   RefreshCw,
+  Send,
   Sparkles,
 } from 'lucide-angular';
 
 import { eur } from '../transactions/util/currency';
 import { InsightResponse } from './data/ai.models';
 import { InsightService } from './data/insight.service';
+import {
+  InsightQaService,
+  QUESTION_MAX_LENGTH,
+} from './data/insight-qa.service';
 import { renderInsightMarkdown } from './insight-markdown';
+
+interface QaTurn {
+  id: number;
+  question: string;
+  state: 'loading' | 'done' | 'error';
+  answerHtml?: string;
+  error?: string;
+}
 
 /**
  * Écran Insights (handoff screen-insights.jsx) : prose IA + StatChips data-driven (depuis facts,
@@ -119,6 +132,75 @@ import { renderInsightMarkdown } from './insight-markdown';
               }
             </div>
           }
+
+          <!-- Q&A libre -->
+          <div class="qa">
+            <div class="qa-head">
+              <span class="eyebrow">Pose ta question</span>
+              <div class="qa-sub">
+                Demande ce que tu veux sur tes finances — l'IA répond à partir de
+                tes données.
+              </div>
+            </div>
+
+            @if (turns().length > 0) {
+              <div class="qa-thread" aria-live="polite">
+                @for (t of turns(); track t.id) {
+                  <div class="qa-turn">
+                    <div class="qa-q">
+                      <span class="qa-q-label">Toi</span>
+                      <span>{{ t.question }}</span>
+                    </div>
+                    @switch (t.state) {
+                      @case ('loading') {
+                        <div class="qa-a loading">
+                          <span class="qa-dot"></span>
+                          <span class="qa-dot"></span>
+                          <span class="qa-dot"></span>
+                          <span class="qa-loading-text">L'IA réfléchit…</span>
+                        </div>
+                      }
+                      @case ('error') {
+                        <div class="qa-a error" role="alert">{{ t.error }}</div>
+                      }
+                      @default {
+                        <div class="qa-a prose" [innerHTML]="t.answerHtml"></div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <form class="qa-form" (ngSubmit)="ask()">
+              <div class="qa-input" [class.over]="question().length > maxLen">
+                <label class="sr-only" for="qa-question">Ta question</label>
+                <textarea
+                  id="qa-question"
+                  rows="2"
+                  [value]="question()"
+                  (input)="onInput($event)"
+                  (keydown.enter)="onEnter($event)"
+                  [attr.maxlength]="maxLen"
+                  [disabled]="pending()"
+                  placeholder="Ex. Où part le plus gros de mon budget ce mois-ci ?"
+                ></textarea>
+                <button
+                  type="submit"
+                  class="qa-send"
+                  [disabled]="!canAsk()"
+                  aria-label="Envoyer la question"
+                >
+                  <lucide-icon [img]="icons.Send" [size]="18"></lucide-icon>
+                </button>
+              </div>
+              <div class="qa-meta">
+                <span class="qa-count" [class.over]="question().length > maxLen">
+                  {{ question().length }}/{{ maxLen }}
+                </span>
+              </div>
+            </form>
+          </div>
         }
       </div>
     </section>
@@ -386,6 +468,184 @@ import { renderInsightMarkdown } from './insight-markdown';
       background: rgba(250, 247, 239, 0.04);
     }
 
+    /* ── Q&A libre ── */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .qa {
+      margin-top: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 0.5px solid var(--border);
+    }
+    .qa-head {
+      margin-bottom: var(--space-5);
+    }
+    .qa-sub {
+      margin-top: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .qa-thread {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+    .qa-turn {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .qa-q {
+      display: flex;
+      gap: var(--space-3);
+      align-items: baseline;
+      font-size: var(--text-body);
+      font-weight: 500;
+      color: var(--text);
+    }
+    .qa-q-label {
+      flex-shrink: 0;
+      font-size: var(--text-meta);
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      padding-top: 3px;
+    }
+    .qa-a {
+      padding: var(--space-4) var(--space-5);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-body);
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .qa-a.error {
+      color: var(--danger);
+      background: transparent;
+    }
+    .qa-a.loading {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--text-secondary);
+    }
+    .qa-loading-text {
+      margin-left: var(--space-2);
+      font-size: var(--text-sm);
+    }
+    .qa-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-pill);
+      background: var(--text-tertiary);
+      animation: qaBlink 1.2s var(--ease) infinite;
+    }
+    .qa-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .qa-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes qaBlink {
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    /* La réponse réutilise les styles .prose (titres/listes/gras) déjà définis. */
+    .qa-a.prose {
+      font-size: var(--text-body);
+    }
+
+    .qa-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .qa-input {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+      background: var(--surface-raised);
+      border: 0.5px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      transition: border-color var(--dur-fast) var(--ease);
+    }
+    .qa-input:focus-within {
+      border-color: var(--text-tertiary);
+    }
+    .qa-input.over {
+      border-color: var(--danger);
+    }
+    .qa-input textarea {
+      flex: 1;
+      min-width: 0;
+      resize: none;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--text-body);
+      line-height: 1.5;
+      padding: var(--space-2) 0;
+    }
+    .qa-input textarea::placeholder {
+      color: var(--text-tertiary);
+    }
+    .qa-input textarea:disabled {
+      opacity: 0.6;
+    }
+    .qa-send {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--accent);
+      color: var(--on-accent);
+      cursor: pointer;
+      transition: filter var(--dur-fast) var(--ease);
+    }
+    .qa-send:hover:not(:disabled) {
+      filter: brightness(1.05);
+    }
+    .qa-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .qa-meta {
+      display: flex;
+      justify-content: flex-end;
+      padding-right: var(--space-1);
+    }
+    .qa-count {
+      font-size: var(--text-meta);
+      color: var(--text-tertiary);
+      font-variant-numeric: tabular-nums;
+    }
+    .qa-count.over {
+      color: var(--danger);
+    }
+
     @keyframes pulse {
       0%,
       100% {
@@ -411,15 +671,18 @@ import { renderInsightMarkdown } from './insight-markdown';
 })
 export class InsightsPageComponent {
   private readonly service = inject(InsightService);
+  private readonly qa = inject(InsightQaService);
 
   readonly icons: {
     Sparkles: LucideIconData;
     RefreshCw: LucideIconData;
     Check: LucideIconData;
+    Send: LucideIconData;
   } = {
     Sparkles,
     RefreshCw,
     Check,
+    Send,
   };
   readonly eur = eur;
   readonly angleChips = [
@@ -439,8 +702,74 @@ export class InsightsPageComponent {
     renderInsightMarkdown(this.insight()?.text),
   );
 
+  // ── Q&A libre ──
+  readonly maxLen = QUESTION_MAX_LENGTH;
+  readonly question = signal('');
+  readonly turns = signal<QaTurn[]>([]);
+  private nextTurnId = 0;
+
+  /** Une requête est en vol : on bloque l'envoi concurrent. */
+  readonly pending = computed(() =>
+    this.turns().some((t) => t.state === 'loading'),
+  );
+
+  /** Validation client miroir du back : non vide, ≤ 500, pas de requête en cours. */
+  readonly canAsk = computed(() => {
+    const q = this.question().trim();
+    return q.length >= 1 && q.length <= this.maxLen && !this.pending();
+  });
+
   constructor() {
     this.load();
+  }
+
+  onInput(event: Event): void {
+    this.question.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  /** Entrée = envoyer ; Maj+Entrée = nouvelle ligne. */
+  onEnter(event: Event): void {
+    const e = event as KeyboardEvent;
+    if (!e.shiftKey) {
+      e.preventDefault();
+      this.ask();
+    }
+  }
+
+  ask(): void {
+    const q = this.question().trim();
+    if (!this.canAsk()) {
+      return;
+    }
+    const id = ++this.nextTurnId;
+    this.turns.update((ts) => [...ts, { id, question: q, state: 'loading' }]);
+    this.question.set('');
+
+    this.qa.ask(q).subscribe({
+      next: (r) =>
+        this.patchTurn(id, {
+          state: 'done',
+          answerHtml: renderInsightMarkdown(r.answer),
+        }),
+      error: (err: HttpErrorResponse) =>
+        this.patchTurn(id, { state: 'error', error: this.askError(err) }),
+    });
+  }
+
+  private patchTurn(id: number, patch: Partial<QaTurn>): void {
+    this.turns.update((ts) =>
+      ts.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    );
+  }
+
+  private askError(err: HttpErrorResponse): string {
+    if (err.status === 503) {
+      return "L'IA est momentanément indisponible. Réessaie dans un instant.";
+    }
+    if (err.status === 400) {
+      return 'Question invalide (1 à 500 caractères).';
+    }
+    return "Impossible d'obtenir une réponse pour l'instant.";
   }
 
   reload(): void {
