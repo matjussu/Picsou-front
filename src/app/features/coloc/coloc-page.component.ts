@@ -669,6 +669,23 @@ interface RelativeBalance {
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        padding: var(--space-5) var(--space-4);
+      }
+      .body {
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .actions {
+        flex-wrap: wrap;
+      }
+    }
   `,
 })
 export class ColocPageComponent implements OnDestroy {

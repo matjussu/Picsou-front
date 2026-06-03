@@ -27,8 +27,9 @@ interface NavItem {
 }
 
 /**
- * App shell minimal Phase 2 : sidebar 248px (logo + nav + user) + zone contenu.
- * Seul l'onglet Transactions est fonctionnel ; les autres sont présents mais inertes (P3+).
+ * App shell : sidebar 248px (logo + nav + user) + zone contenu sur desktop ;
+ * barre d'onglets en bas + barre supérieure (marque/déconnexion) sur mobile (<640px).
+ * Tous les onglets sont fonctionnels.
  */
 @Component({
   selector: 'app-shell',
@@ -36,6 +37,21 @@ interface NavItem {
   imports: [RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule],
   template: `
     <div class="layout">
+      <header class="mobile-top">
+        <div class="brand">
+          <span class="coin">P</span>
+          <span class="wordmark font-display">PICSOU</span>
+        </div>
+        <button
+          type="button"
+          class="logout"
+          (click)="logout()"
+          aria-label="Se déconnecter"
+        >
+          <lucide-icon [img]="icons.LogOut" [size]="20"></lucide-icon>
+        </button>
+      </header>
+
       <aside class="sidebar">
         <div class="brand">
           <span class="coin">P</span>
@@ -95,6 +111,10 @@ interface NavItem {
       display: flex;
       min-height: 100vh;
       background: var(--bg);
+    }
+    /* Barre supérieure mobile (marque + déconnexion) — masquée sur desktop */
+    .mobile-top {
+      display: none;
     }
     .sidebar {
       width: 248px;
@@ -232,6 +252,85 @@ interface NavItem {
       flex: 1;
       min-width: 0;
     }
+
+    /* ============================================================
+       Mobile (<640px) : la sidebar verticale devient une barre
+       d'onglets fixe en bas (pattern app-native), la marque +
+       déconnexion remontent dans une barre supérieure sticky.
+       Aucune règle desktop n'est modifiée.
+       ============================================================ */
+    @media (max-width: 640px) {
+      .layout {
+        flex-direction: column;
+      }
+      .mobile-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: var(--space-3) var(--space-4);
+        background: var(--surface);
+        border-bottom: 0.5px solid var(--border);
+      }
+      .mobile-top .brand {
+        padding: 0;
+        gap: var(--space-2);
+      }
+      .mobile-top .wordmark {
+        font-size: 22px;
+      }
+
+      /* Sidebar → barre d'onglets en bas */
+      .sidebar {
+        position: fixed;
+        inset: auto 0 0 0;
+        width: auto;
+        flex-direction: row;
+        align-items: stretch;
+        padding: var(--space-1) var(--space-2);
+        padding-bottom: max(var(--space-1), env(safe-area-inset-bottom));
+        border-right: none;
+        border-top: 0.5px solid var(--border);
+        z-index: 20;
+      }
+      /* La marque et le bloc user vivent dans .mobile-top sur mobile */
+      .sidebar > .brand,
+      .sidebar > .user {
+        display: none;
+      }
+      .nav {
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0;
+        flex: 1;
+      }
+      .nav-item {
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        padding: var(--space-2) var(--space-1);
+        font-size: 11px;
+        text-align: center;
+        border-radius: var(--radius-sm);
+      }
+      .nav-item span {
+        line-height: 1.1;
+      }
+      /* Indicateur actif : pastille de fond, pas la barre latérale */
+      .nav-item.active::before {
+        display: none;
+      }
+      .nav-item.active {
+        background: rgba(255, 214, 10, 0.1);
+      }
+
+      /* Le contenu ne doit pas passer sous la barre d'onglets */
+      .content {
+        padding-bottom: calc(68px + env(safe-area-inset-bottom));
+      }
+    }
   `,
 })
 export class ShellComponent {
@@ -249,7 +348,7 @@ export class ShellComponent {
     { label: 'Coloc', icon: Users, route: '/coloc' },
     { label: 'Objectifs', icon: Target, route: '/goals' },
     { label: 'Insights', icon: Sparkles, route: '/insights' },
-    { label: 'Réglages', icon: Settings, route: null },
+    { label: 'Réglages', icon: Settings, route: '/settings' },
   ];
 
   logout(): void {
