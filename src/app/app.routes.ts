@@ -80,6 +80,13 @@ export const routes: Routes = [
             (m) => m.SettingsPageComponent,
           ),
       },
+      {
+        path: 'openbanking',
+        loadComponent: () =>
+          import('./features/openbanking/openbanking-page.component').then(
+            (m) => m.OpenBankingPageComponent,
+          ),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

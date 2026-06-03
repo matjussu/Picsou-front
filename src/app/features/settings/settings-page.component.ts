@@ -1,6 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { LogOut, LucideAngularModule } from 'lucide-angular';
+import {
+  ChevronRight,
+  Landmark,
+  LogOut,
+  LucideAngularModule,
+} from 'lucide-angular';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
@@ -9,9 +14,9 @@ import { ThemeService } from '../../core/theme/theme.service';
 /**
  * Écran Réglages minimal, aligné sur la maquette screen-settings.jsx (titre de
  * section au-dessus d'une carte, lignes à séparateurs, toggle pilule, pied avec
- * version + déconnexion). Périmètre volontairement réduit (profil + thème +
- * déconnexion) : les sections « Comptes connectés » (Open Banking) et
- * « Catégories » de la maquette sont hors-scope ici.
+ * version + déconnexion). Profil + thème + Open Banking (lien vers l'écran de
+ * connexion bancaire) + déconnexion. La section « Catégories » de la maquette
+ * reste hors-scope ici.
  */
 @Component({
   selector: 'app-settings-page',
@@ -58,6 +63,29 @@ import { ThemeService } from '../../core/theme/theme.service';
               <span class="knob"></span>
             </button>
           </div>
+        </div>
+      </section>
+
+      <!-- Comptes bancaires (Open Banking) -->
+      <section class="section">
+        <h2 class="section-title">Comptes bancaires</h2>
+        <div class="card">
+          <button type="button" class="row link last" (click)="goOpenBanking()">
+            <span class="row-icon">
+              <lucide-icon [img]="icons.Landmark" [size]="20"></lucide-icon>
+            </span>
+            <div class="row-main">
+              <div class="row-label">Open Banking</div>
+              <div class="row-desc">
+                Connecter une banque et importer tes transactions
+              </div>
+            </div>
+            <lucide-icon
+              [img]="icons.ChevronRight"
+              [size]="18"
+              class="row-chev"
+            ></lucide-icon>
+          </button>
         </div>
       </section>
 
@@ -146,6 +174,40 @@ import { ThemeService } from '../../core/theme/theme.service';
       font-size: 13px;
       color: var(--text-tertiary);
       margin-top: 2px;
+    }
+
+    /* Ligne cliquable (navigation) */
+    .row.link {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 0.5px solid var(--border);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .row.link.last {
+      border-bottom: none;
+    }
+    .row-icon {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      color: var(--text-secondary);
+      display: grid;
+      place-items: center;
+    }
+    .row-chev {
+      color: var(--text-tertiary);
+    }
+    .row.link:hover .row-label {
+      color: var(--text);
+    }
+    .row.link:hover .row-chev {
+      color: var(--text-secondary);
     }
 
     /* Toggle pilule (style maquette) */
@@ -239,9 +301,13 @@ export class SettingsPageComponent {
   private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
 
-  readonly icons = { LogOut };
+  readonly icons = { LogOut, Landmark, ChevronRight };
   readonly firstName = this.storage.getFirstName() ?? 'Utilisateur';
   readonly initial = (this.firstName.charAt(0) || 'U').toUpperCase();
+
+  goOpenBanking(): void {
+    void this.router.navigate(['/openbanking']);
+  }
 
   isDark(): boolean {
     return this.theme.theme() === 'dark';
