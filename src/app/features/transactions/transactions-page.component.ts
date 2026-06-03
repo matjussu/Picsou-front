@@ -696,6 +696,39 @@ type PeriodPreset = 'month' | '30d';
     .btn.ghost:hover {
       background: rgba(250, 247, 239, 0.04);
     }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+      }
+      .body {
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .actions {
+        width: 100%;
+      }
+      /* Table dense → on masque Compte + Date, on garde
+         Icône · Description · Catégorie · Montant (l'essentiel lisible). */
+      .txn-table th:nth-child(4),
+      .txn-table td:nth-child(4),
+      .txn-table th:nth-child(5),
+      .txn-table td:nth-child(5) {
+        display: none;
+      }
+      .txn-table th:nth-child(3),
+      .txn-table td:nth-child(3) {
+        width: 104px;
+      }
+      .col-amount {
+        width: 92px;
+      }
+    }
   `,
 })
 export class TransactionsPageComponent {

@@ -18,6 +18,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'onboarding',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/onboarding/onboarding-page.component').then(
+        (m) => m.OnboardingPageComponent,
+      ),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -63,6 +71,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/goals/goal-detail-page.component').then(
             (m) => m.GoalDetailPageComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings-page.component').then(
+            (m) => m.SettingsPageComponent,
           ),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

@@ -172,7 +172,7 @@ import { InsightService } from './data/insight.service';
       border-radius: var(--radius-lg);
       background: linear-gradient(
         155deg,
-        #1c1b14 0%,
+        var(--tile-gradient-start) 0%,
         var(--surface-raised) 55%
       );
       border: 0.5px solid rgba(255, 214, 10, 0.3);
@@ -359,6 +359,18 @@ import { InsightService } from './data/insight.service';
       }
       50% {
         opacity: 0.5;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding: var(--space-5) var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .body {
+        padding: var(--space-6) var(--space-4);
       }
     }
   `,

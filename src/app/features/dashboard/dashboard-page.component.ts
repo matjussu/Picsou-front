@@ -369,7 +369,14 @@ interface MonthBar {
                         >{{ saved(g) }} / {{ target(g) }}</span
                       >
                     </div>
-                    <span class="track">
+                    <span
+                      class="track"
+                      role="progressbar"
+                      [attr.aria-valuenow]="clampPct(g.progressPercent)"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      [attr.aria-label]="g.name + ' : ' + clampPct(g.progressPercent) + '%'"
+                    >
                       <span
                         class="fill"
                         [style.width.%]="clampPct(g.progressPercent)"
@@ -617,7 +624,7 @@ interface MonthBar {
       border-radius: var(--radius-lg);
       background: linear-gradient(
         150deg,
-        #1b1a14 0%,
+        var(--tile-gradient-start) 0%,
         var(--surface-raised) 60%
       );
       border: 0.5px solid rgba(255, 214, 10, 0.28);
@@ -948,6 +955,27 @@ interface MonthBar {
       .grid,
       .stats {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+      }
+      .body {
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .hero {
+        font-size: 40px;
+      }
+      .actions {
+        width: 100%;
       }
     }
   `,

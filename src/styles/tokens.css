@@ -33,6 +33,10 @@
   --danger:         #D92D20;
   --focus-ring:     #0F0F0F;
 
+  /* Départ de dégradé des tuiles de marque (CTA Insight, carte Insights).
+     Clair = teinte chaude claire ; le sombre (source design) est défini plus bas. */
+  --tile-gradient-start: #F0EAD8;
+
   /* --- Typographie --- */
   --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
   --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
@@ -87,6 +91,8 @@
   --danger:         #F0584D;
   --focus-ring:     #FFD60A;
   --shadow-pop:     0 8px 24px rgba(0, 0, 0, .5);
+  /* Valeur d'origine de la maquette : le sombre reste identique au pixel. */
+  --tile-gradient-start: #1b1a14;
 }
 
 /* ============================================================

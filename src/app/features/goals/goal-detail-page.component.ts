@@ -67,7 +67,14 @@ import { eur } from '../transactions/util/currency';
               </div>
               <span class="font-display prog-pct">{{ pct() }}%</span>
             </div>
-            <span class="track big">
+            <span
+              class="track big"
+              role="progressbar"
+              [attr.aria-valuenow]="pct()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-label]="'Progression : ' + pct() + '%'"
+            >
               <span class="fill" [style.width.%]="pct()"></span>
             </span>
             <div class="prog-foot">
@@ -379,6 +386,26 @@ import { eur } from '../transactions/util/currency';
     @media (max-width: 1024px) {
       .grid {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+      }
+      .body {
+        padding: var(--space-5) var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .hero {
+        font-size: 40px;
+      }
+      .actions {
+        width: 100%;
       }
     }
   `,

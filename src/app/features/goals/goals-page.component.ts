@@ -6,7 +6,6 @@ import {
   Check,
   LucideAngularModule,
   LucideIconData,
-  MoreHorizontal,
   Plane,
   Plus,
   ShoppingBag,
@@ -107,11 +106,6 @@ import { eur } from '../transactions/util/currency';
                   <span class="goal-name">{{ g.name }}</span>
                   <span class="goal-deadline">{{ deadlineLabel(g) }}</span>
                 </div>
-                <lucide-icon
-                  [img]="icons.MoreHorizontal"
-                  [size]="18"
-                  class="goal-more"
-                ></lucide-icon>
               </div>
 
               <div class="goal-amount">
@@ -121,7 +115,14 @@ import { eur } from '../transactions/util/currency';
                 <span class="amount goal-target">/ {{ target(g) }}</span>
               </div>
 
-              <span class="track">
+              <span
+                class="track"
+                role="progressbar"
+                [attr.aria-valuenow]="clampPct(g.progressPercent)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-label]="g.name + ' : ' + round(g.progressPercent) + '% atteint'"
+              >
                 <span class="fill" [style.width.%]="clampPct(g.progressPercent)"></span>
               </span>
 
@@ -283,10 +284,6 @@ import { eur } from '../transactions/util/currency';
       font-size: 13px;
       color: var(--text-tertiary);
       margin-top: 2px;
-    }
-    .goal-more {
-      color: var(--text-tertiary);
-      flex-shrink: 0;
     }
     .goal-amount {
       display: flex;
@@ -464,6 +461,27 @@ import { eur } from '../transactions/util/currency';
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+      }
+      .body {
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-4);
+      }
+      .title {
+        font-size: 22px;
+      }
+      .hero {
+        font-size: 40px;
+      }
+      .actions {
+        width: 100%;
+      }
+    }
   `,
 })
 export class GoalsPageComponent {
@@ -476,7 +494,6 @@ export class GoalsPageComponent {
     Target: LucideIconData;
     Check: LucideIconData;
     TrendingUp: LucideIconData;
-    MoreHorizontal: LucideIconData;
     Plane: LucideIconData;
     ShoppingBag: LucideIconData;
   } = {
@@ -484,7 +501,6 @@ export class GoalsPageComponent {
     Target,
     Check,
     TrendingUp,
-    MoreHorizontal,
     Plane,
     ShoppingBag,
   };
