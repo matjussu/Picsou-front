@@ -1,10 +1,13 @@
 /** Styles partagés des écrans d'auth (login/signup) : split brand panel + formulaire. */
 export const AUTH_STYLES = `
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
     .auth {
-      min-height: 100vh;
+      flex: 1;
       display: flex;
       background: var(--bg);
       color: var(--text);
