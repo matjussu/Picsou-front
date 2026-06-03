@@ -24,3 +24,20 @@ export function eur(value: number | null | undefined, opts: { plus?: boolean } =
   }
   return abs;
 }
+
+/**
+ * Format compact pour les axes / labels de graphe (conforme au handoff eurK).
+ * 2 329 → « 2,3 k € » · 850 → « 850 € » · 0 → « 0 € ». Évite les libellés trop
+ * larges qui se chevauchent sur des colonnes étroites.
+ */
+export function eurCompact(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '—';
+  }
+  const abs = Math.abs(value);
+  const body =
+    abs >= 1000
+      ? `${(abs / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}${NBSP}k${NBSP}€`
+      : `${Math.round(abs).toLocaleString('fr-FR')}${NBSP}€`;
+  return value < 0 ? `${MINUS}${NBSP}${body}` : body;
+}

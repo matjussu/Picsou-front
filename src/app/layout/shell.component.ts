@@ -122,8 +122,15 @@ interface NavItem {
       display: flex;
       flex-direction: column;
       background: var(--surface);
-      border-right: 0.5px solid var(--border);
+      /* Séparation plus marquée (bordure renforcée — pas d'ombre, cf DESIGN_SYSTEM). */
+      border-right: 1px solid var(--border-strong);
       padding: var(--space-5) var(--space-4);
+      /* Fixe au scroll : le contenu défile, la sidebar reste en place (desktop). */
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      height: 100vh;
+      height: 100dvh;
     }
     .brand {
       display: flex;
@@ -282,17 +289,18 @@ interface NavItem {
         font-size: 22px;
       }
 
-      /* Sidebar → barre d'onglets en bas */
+      /* Sidebar → barre d'onglets en bas (annule le sticky/height desktop) */
       .sidebar {
         position: fixed;
         inset: auto 0 0 0;
         width: auto;
+        height: auto;
         flex-direction: row;
         align-items: stretch;
         padding: var(--space-1) var(--space-2);
         padding-bottom: max(var(--space-1), env(safe-area-inset-bottom));
         border-right: none;
-        border-top: 0.5px solid var(--border);
+        border-top: 0.5px solid var(--border-strong);
         z-index: 20;
       }
       /* La marque et le bloc user vivent dans .mobile-top sur mobile */
