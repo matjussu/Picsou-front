@@ -24,6 +24,15 @@ body {
   height: 100%;
 }
 
+/* app-root est un custom element : sans règle de display il vaut `inline` par
+   défaut, ce qui crée un contexte inline ajoutant un gap baseline (~4-5px) sous
+   le contenu plein écran (visible en bas des écrans auth). On le passe en block
+   pour supprimer ce gap. Aucune contrainte de hauteur imposée : l'auth garde son
+   :host min-height:100dvh et le shell son .layout min-height:100vh. */
+app-root {
+  display: block;
+}
+
 body {
   margin: 0;
   background: var(--bg);
