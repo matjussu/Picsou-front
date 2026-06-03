@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   Check,
   LucideAngularModule,
@@ -11,6 +11,7 @@ import {
 import { eur } from '../transactions/util/currency';
 import { InsightResponse } from './data/ai.models';
 import { InsightService } from './data/insight.service';
+import { renderInsightMarkdown } from './insight-markdown';
 
 /**
  * Écran Insights (handoff screen-insights.jsx) : prose IA + StatChips data-driven (depuis facts,
@@ -74,7 +75,7 @@ import { InsightService } from './data/insight.service';
               </button>
             } @else {
               @if (insight(); as ins) {
-                <p class="prose">{{ ins.text }}</p>
+                <div class="prose" [innerHTML]="renderedInsight()"></div>
                 <div class="chips">
                   @for (
                     c of ins.facts.topCategories.slice(0, 3);
@@ -209,6 +210,39 @@ import { InsightService } from './data/insight.service';
       line-height: 1.6;
       color: var(--text);
       letter-spacing: -0.2px;
+    }
+    .prose :first-child {
+      margin-top: 0;
+    }
+    .prose :last-child {
+      margin-bottom: 0;
+    }
+    .prose p {
+      margin: 0 0 var(--space-4);
+    }
+    .prose strong {
+      font-weight: 600;
+    }
+    .prose em {
+      font-style: italic;
+    }
+    .prose h3 {
+      margin: 0 0 var(--space-3);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .prose h4 {
+      margin: var(--space-4) 0 var(--space-2);
+      font-size: 19px;
+      font-weight: 600;
+    }
+    .prose ul {
+      margin: 0 0 var(--space-4);
+      padding-left: 1.25em;
+    }
+    .prose li {
+      margin: 0 0 var(--space-2);
     }
     .loading-text {
       font-size: 19px;
@@ -399,6 +433,11 @@ export class InsightsPageComponent {
   readonly errored = signal(false);
   readonly unavailable = signal(false);
   readonly insight = signal<InsightResponse | null>(null);
+
+  /** Prose IA rendue en HTML sûr (markdown LLM → strong/titres/listes). */
+  readonly renderedInsight = computed(() =>
+    renderInsightMarkdown(this.insight()?.text),
+  );
 
   constructor() {
     this.load();

@@ -806,7 +806,7 @@ interface MonthBar {
     /* Monthly bars (flat, token-driven; current month in Or) */
     .month-bars {
       display: flex;
-      align-items: flex-end;
+      align-items: stretch;
       gap: 8px;
       height: 230px;
       padding-top: 8px;
@@ -814,6 +814,7 @@ interface MonthBar {
     .month-col {
       flex: 1;
       min-width: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
