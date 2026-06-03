@@ -17,7 +17,7 @@ import { forkJoin } from 'rxjs';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
 import { Transaction } from '../transactions/data/transaction.models';
 import { TransactionService } from '../transactions/data/transaction.service';
-import { eur } from '../transactions/util/currency';
+import { eur, eurCompact } from '../transactions/util/currency';
 import {
   CategorySlice,
   DashboardSummary,
@@ -39,6 +39,7 @@ interface CatRow {
 interface MonthBar {
   label: string;
   amount: string;
+  hasValue: boolean; // false = mois à 0 → on masque le label (déclutter)
   heightPct: number; // 0..100 relative to max
   current: boolean;
 }
@@ -194,6 +195,7 @@ interface MonthBar {
                     <span
                       class="month-val amount"
                       [class.current]="b.current"
+                      [class.empty]="!b.hasValue"
                       >{{ b.amount }}</span
                     >
                     <span class="month-bar-wrap">
@@ -807,9 +809,9 @@ interface MonthBar {
     .month-bars {
       display: flex;
       align-items: stretch;
-      gap: 8px;
+      gap: var(--space-3);
       height: 230px;
-      padding-top: 8px;
+      padding-top: var(--space-2);
     }
     .month-col {
       flex: 1;
@@ -819,16 +821,22 @@ interface MonthBar {
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: var(--space-2);
     }
     .month-val {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
+      letter-spacing: -0.2px;
       color: var(--text-tertiary);
       white-space: nowrap;
     }
+    /* Mois à 0 : on réserve la hauteur mais on masque le « 0 € » (déclutter). */
+    .month-val.empty {
+      visibility: hidden;
+    }
     .month-val.current {
-      color: var(--text);
+      color: var(--accent);
+      font-weight: 700;
     }
     .month-bar-wrap {
       width: 100%;
@@ -1047,7 +1055,8 @@ export class DashboardPageComponent {
       const v = Math.abs(p.total);
       return {
         label: this.monthShort(p.period),
-        amount: eur(v),
+        amount: eurCompact(v),
+        hasValue: v > 0,
         heightPct: v <= 0 ? 0 : Math.max(4, Math.round((v / max) * 100)),
         current: p.current,
       };
