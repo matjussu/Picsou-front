@@ -51,6 +51,15 @@ import {
     </aside>
   `,
   styles: `
+    /* Le host est étiré en hauteur par .auth (flex row, align-items:stretch),
+       mais sans display propre le .panel interne gardait sa hauteur de contenu
+       (~559px) → bande morte sous le panneau de marque en bas d'écran. On passe
+       le host en flex pour que .panel remplisse toute la hauteur étirée ;
+       flex-shrink:0 préserve la largeur fixe du panneau côté .auth. */
+    :host {
+      display: flex;
+      flex-shrink: 0;
+    }
     .panel {
       width: 528px;
       flex-shrink: 0;
