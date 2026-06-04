@@ -642,6 +642,7 @@ type PeriodPreset = 'month' | '30d';
     .txn-table th:nth-child(3),
     .txn-table td:nth-child(3) {
       width: 132px;
+      overflow: hidden;
     }
     .txn-table th:nth-child(4),
     .txn-table td:nth-child(4) {
@@ -672,6 +673,7 @@ type PeriodPreset = 'month' | '30d';
     }
     .pill {
       display: inline-block;
+      max-width: 100%;
       font-size: 12.5px;
       color: var(--text-secondary);
       background: var(--surface);
@@ -679,6 +681,9 @@ type PeriodPreset = 'month' | '30d';
       padding: 4px 10px;
       border-radius: var(--radius-pill);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
     }
     .muted {
       color: var(--text-tertiary);
@@ -1050,8 +1055,9 @@ export class TransactionsPageComponent {
     const ref = this.dialog.open(AddTransactionDialogComponent, {
       width: '520px',
       maxWidth: '94vw',
+      maxHeight: '100dvh',
       autoFocus: false,
-      panelClass: 'picsou-dialog',
+      panelClass: ['picsou-dialog', 'picsou-sheet'],
     });
     ref.afterClosed().subscribe((created?: Transaction) => {
       if (created) {
@@ -1065,8 +1071,9 @@ export class TransactionsPageComponent {
     const ref = this.dialog.open(AddTransactionDialogComponent, {
       width: '520px',
       maxWidth: '94vw',
+      maxHeight: '100dvh',
       autoFocus: false,
-      panelClass: 'picsou-dialog',
+      panelClass: ['picsou-dialog', 'picsou-sheet'],
       data: { transaction: t },
     });
     ref.afterClosed().subscribe((updated?: Transaction) => {

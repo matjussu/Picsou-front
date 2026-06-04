@@ -104,6 +104,11 @@ interface MonthBar {
               [class.pos]="balancePositive()"
               >{{ balance() }}</span
             >
+            <span class="available">
+              <span class="available-label">Disponible</span>
+              <span class="available-value amount">{{ availableLabel() }}</span>
+              <span class="available-hint">hors épargne objectifs</span>
+            </span>
           }
           <span class="stat-sub"
             >{{ summary()?.transactionCount ?? 0 }} transactions ce mois</span
@@ -477,6 +482,29 @@ interface MonthBar {
     }
     .stat-sub {
       font-size: 13px;
+      color: var(--text-tertiary);
+    }
+    /* Solde disponible (= solde brut − épargne déjà placée dans les objectifs) */
+    .available {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin-top: -2px;
+    }
+    .available-label {
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .available-value {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .available-hint {
+      font-size: 12px;
       color: var(--text-tertiary);
     }
 
@@ -1027,6 +1055,7 @@ export class DashboardPageComponent {
   readonly categories = signal<CategorySlice[]>([]);
   readonly recent = signal<Transaction[]>([]);
   readonly miniGoals = signal<Goal[]>([]);
+  readonly totalSaved = signal(0);
   readonly forecast = signal<PredictionResponse | null>(null);
 
   readonly forecastValue = computed(() =>
@@ -1038,6 +1067,14 @@ export class DashboardPageComponent {
   );
   readonly balancePositive = computed(
     () => (this.summary()?.balance ?? 0) >= 0,
+  );
+  /** Solde disponible = solde brut − total déjà épargné dans les objectifs (calcul front). */
+  readonly availableBalance = computed(() => {
+    const bal = this.summary()?.balance;
+    return bal == null ? null : bal - this.totalSaved();
+  });
+  readonly availableLabel = computed(() =>
+    eur(this.availableBalance(), { plus: true }),
   );
   readonly income = computed(() =>
     eur(this.summary()?.income ?? null, { plus: true }),
@@ -1110,6 +1147,9 @@ export class DashboardPageComponent {
         this.categories.set(r.categories);
         this.recent.set(r.recent.slice(0, 6));
         this.miniGoals.set(r.goals.slice(0, 2));
+        this.totalSaved.set(
+          r.goals.reduce((sum, g) => sum + (g.currentAmount ?? 0), 0),
+        );
         this.loading.set(false);
       },
       error: () => {

@@ -82,7 +82,8 @@ import { categoryIcon } from '../util/category-visual';
         </button>
       </header>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="body">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+        <div class="scroll">
         <!-- Scanner un reçu (OCR vision) → pré-remplit le formulaire (création seule) -->
         @if (!editing) {
           <label class="scan-btn" [class.busy]="scanning()">
@@ -239,6 +240,8 @@ import { categoryIcon } from '../util/category-visual';
           </div>
         }
 
+        </div>
+
         <footer class="actions">
           <button type="button" class="btn ghost" (click)="cancel()">
             Annuler
@@ -252,20 +255,34 @@ import { categoryIcon } from '../util/category-visual';
     </div>
   `,
   styles: `
+    /* Dialog borné en hauteur, corps scrollable en interne, header + footer (valider)
+       toujours visibles — fonctionne desktop ET mobile (plein écran via picsou-sheet). */
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-height: 92dvh;
     }
     .dialog {
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      flex: 1;
+      background: var(--surface);
     }
     .head {
+      flex-shrink: 0;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-4);
       padding: var(--space-6) var(--space-6) var(--space-5);
       border-bottom: 0.5px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      :host {
+        max-height: 100dvh;
+      }
     }
     .title {
       margin: 0;
@@ -302,7 +319,17 @@ import { categoryIcon } from '../util/category-visual';
       border-color: var(--border-strong);
     }
 
-    .body {
+    .form {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+    }
+    .scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: var(--space-6);
       display: flex;
       flex-direction: column;
@@ -498,9 +525,13 @@ import { categoryIcon } from '../util/category-visual';
 
     /* Actions */
     .actions {
+      flex-shrink: 0;
       display: flex;
       gap: 10px;
-      margin-top: 4px;
+      padding: var(--space-4) var(--space-6);
+      padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+      border-top: 0.5px solid var(--border);
+      background: var(--surface);
     }
     .btn {
       display: inline-flex;
