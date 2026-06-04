@@ -44,7 +44,7 @@ type GoalChoice = 'savings' | 'trip' | 'purchase';
       <!-- Barre haut : logo + progression + passer -->
       <header class="top">
         <div class="brand">
-          <img class="coin" src="/assets/branding/logo-picsou.png" alt="Picsou" />
+          <img class="coin" src="/assets/branding/logo-picsou.svg" alt="Picsou" />
           <span class="wordmark font-display">PICSOU</span>
         </div>
         <div class="top-right">

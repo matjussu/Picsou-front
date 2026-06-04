@@ -24,7 +24,7 @@ import {
       </svg>
 
       <div class="brand">
-        <img class="coin" src="/assets/branding/logo-picsou.png" alt="Picsou" />
+        <img class="coin" src="/assets/branding/logo-picsou.svg" alt="Picsou" />
         <span class="wordmark font-display">PICSOU</span>
       </div>
 

@@ -40,7 +40,7 @@ interface NavItem {
       <header class="mobile-top">
         <div class="brand">
           <img
-            src="/assets/branding/logo-picsou.png"
+            src="/assets/branding/logo-picsou.svg"
             alt="Picsou"
             class="logo-mark"
           />
@@ -59,7 +59,7 @@ interface NavItem {
       <aside class="sidebar">
         <div class="brand">
           <img
-            src="/assets/branding/logo-picsou.png"
+            src="/assets/branding/logo-picsou.svg"
             alt="Picsou"
             class="logo-mark"
           />

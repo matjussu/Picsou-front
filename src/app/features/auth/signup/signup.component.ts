@@ -38,7 +38,7 @@ import { AUTH_STYLES } from '../auth-styles';
       <div class="form-col">
         <form [formGroup]="form" (ngSubmit)="submit()" class="form">
           <div class="mobile-logo">
-            <img class="coin" src="/assets/branding/logo-picsou.png" alt="Picsou" />
+            <img class="coin" src="/assets/branding/logo-picsou.svg" alt="Picsou" />
             <span class="wordmark font-display">PICSOU</span>
           </div>
 
