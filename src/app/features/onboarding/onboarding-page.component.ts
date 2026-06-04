@@ -44,7 +44,7 @@ type GoalChoice = 'savings' | 'trip' | 'purchase';
       <!-- Barre haut : logo + progression + passer -->
       <header class="top">
         <div class="brand">
-          <span class="coin">P</span>
+          <img class="coin" src="/assets/branding/logo-picsou.svg" alt="Picsou" />
           <span class="wordmark font-display">PICSOU</span>
         </div>
         <div class="top-right">
@@ -342,15 +342,9 @@ type GoalChoice = 'savings' | 'trip' | 'purchase';
       gap: var(--space-3);
     }
     .coin {
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-pill);
-      background: var(--accent);
-      color: var(--on-accent);
-      font-family: var(--font-display);
-      font-size: 22px;
-      display: grid;
-      place-items: center;
+      height: 38px;
+      width: auto;
+      object-fit: contain;
     }
     .wordmark {
       font-size: 25px;

@@ -24,7 +24,7 @@ import {
       </svg>
 
       <div class="brand">
-        <span class="coin">P</span>
+        <img class="coin" src="/assets/branding/logo-picsou.svg" alt="Picsou" />
         <span class="wordmark font-display">PICSOU</span>
       </div>
 
@@ -97,15 +97,10 @@ import {
       gap: var(--space-3);
     }
     .coin {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-pill);
-      background: var(--accent);
-      color: var(--on-accent);
-      font-family: var(--font-display);
-      font-size: 28px;
-      display: grid;
-      place-items: center;
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
     }
     .wordmark {
       font-size: 32px;

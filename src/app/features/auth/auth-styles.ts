@@ -30,15 +30,9 @@ export const AUTH_STYLES = `
       margin-bottom: var(--space-8);
     }
     .mobile-logo .coin {
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-pill);
-      background: var(--accent);
-      color: var(--on-accent);
-      font-family: var(--font-display);
-      font-size: 22px;
-      display: grid;
-      place-items: center;
+      height: 38px;
+      width: auto;
+      object-fit: contain;
     }
     .mobile-logo .wordmark {
       font-size: 25px;

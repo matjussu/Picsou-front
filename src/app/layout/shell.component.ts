@@ -41,7 +41,7 @@ interface NavItem {
         <div class="brand">
           <img
             src="/assets/branding/logo-picsou.svg"
-            alt=""
+            alt="Picsou"
             class="logo-mark"
           />
           <span class="wordmark font-display">PICSOU</span>
@@ -60,7 +60,7 @@ interface NavItem {
         <div class="brand">
           <img
             src="/assets/branding/logo-picsou.svg"
-            alt=""
+            alt="Picsou"
             class="logo-mark"
           />
           <span class="wordmark font-display">PICSOU</span>
