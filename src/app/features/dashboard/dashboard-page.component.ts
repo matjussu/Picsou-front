@@ -15,6 +15,7 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { TokenStorageService } from '../../core/auth/token-storage.service';
+import { AccountService } from '../transactions/data/account.service';
 import { Transaction } from '../transactions/data/transaction.models';
 import { TransactionService } from '../transactions/data/transaction.service';
 import { eur, eurCompact } from '../transactions/util/currency';
@@ -1022,6 +1023,7 @@ export class DashboardPageComponent {
   private readonly predictions = inject(PredictionService);
   private readonly transactions = inject(TransactionService);
   private readonly goals = inject(GoalService);
+  private readonly accounts = inject(AccountService);
   private readonly storage = inject(TokenStorageService);
   private readonly snack = inject(MatSnackBar);
 
@@ -1056,6 +1058,7 @@ export class DashboardPageComponent {
   readonly recent = signal<Transaction[]>([]);
   readonly miniGoals = signal<Goal[]>([]);
   readonly totalSaved = signal(0);
+  readonly accountsBalance = signal(0);
   readonly forecast = signal<PredictionResponse | null>(null);
 
   readonly forecastValue = computed(() =>
@@ -1068,11 +1071,14 @@ export class DashboardPageComponent {
   readonly balancePositive = computed(
     () => (this.summary()?.balance ?? 0) >= 0,
   );
-  /** Solde disponible = solde brut − total déjà épargné dans les objectifs (calcul front). */
-  readonly availableBalance = computed(() => {
-    const bal = this.summary()?.balance;
-    return bal == null ? null : bal - this.totalSaved();
-  });
+  /**
+   * Solde disponible = total des comptes (stock réel) − total déjà épargné dans les objectifs.
+   * On part du stock (somme des soldes de comptes), pas du net mensuel summary.balance (flux),
+   * sinon on soustrait un cumul d'épargne d'un flux du mois et on obtient un montant absurde.
+   */
+  readonly availableBalance = computed(
+    () => this.accountsBalance() - this.totalSaved(),
+  );
   readonly availableLabel = computed(() =>
     eur(this.availableBalance(), { plus: true }),
   );
@@ -1140,6 +1146,7 @@ export class DashboardPageComponent {
       categories: this.dashboard.categoryBreakdown(),
       recent: this.transactions.search({ size: 6, sort: 'date,desc' }),
       goals: this.goals.list(),
+      accounts: this.accounts.list(),
     }).subscribe({
       next: (r) => {
         this.summary.set(r.summary);
@@ -1149,6 +1156,9 @@ export class DashboardPageComponent {
         this.miniGoals.set(r.goals.slice(0, 2));
         this.totalSaved.set(
           r.goals.reduce((sum, g) => sum + (g.currentAmount ?? 0), 0),
+        );
+        this.accountsBalance.set(
+          r.accounts.reduce((sum, a) => sum + (a.balance ?? 0), 0),
         );
         this.loading.set(false);
       },
