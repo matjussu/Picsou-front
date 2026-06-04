@@ -808,8 +808,9 @@ export class ColocPageComponent implements OnDestroy {
     const ref = this.dialog.open(AddSharedExpenseDialogComponent, {
       width: '560px',
       maxWidth: '94vw',
+      maxHeight: '100dvh',
       autoFocus: false,
-      panelClass: 'picsou-dialog',
+      panelClass: ['picsou-dialog', 'picsou-sheet'],
       data,
     });
     ref.afterClosed().subscribe((created?: SharedExpense) => {

@@ -57,3 +57,23 @@ body {
   border-radius: var(--radius-lg);
   box-shadow: none;
 }
+
+/* Dialogs « feuille » (dépense partagée) : la surface ne déborde jamais, le contenu scrolle en
+   interne (géré dans le composant) ; plein écran sur mobile pour que le bouton valider soit
+   atteignable au pouce. panelClass = styles hors encapsulation, donc ici en global. */
+.picsou-sheet .mat-mdc-dialog-surface {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .picsou-sheet.cdk-overlay-pane {
+    max-width: 100vw !important;
+    width: 100vw !important;
+  }
+  .picsou-sheet .mat-mdc-dialog-surface {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+}
