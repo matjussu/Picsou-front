@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  ChevronDown,
   ChevronRight,
   CreditCard,
   LucideAngularModule,
@@ -25,7 +26,7 @@ import {
   MonthlyPoint,
 } from './data/dashboard.models';
 import { DashboardService } from './data/dashboard.service';
-import { PredictionResponse } from '../insights/data/ai.models';
+import { Anomaly, PredictionResponse } from '../insights/data/ai.models';
 import { PredictionService } from '../insights/data/prediction.service';
 import { Goal } from '../goals/data/goal.models';
 import { GoalService } from '../goals/data/goal.service';
@@ -154,18 +155,43 @@ interface MonthBar {
             >
           </div>
           @if (f.anomalies.length > 0) {
-            <div class="forecast-anomalies">
+            <button
+              type="button"
+              class="forecast-anomalies"
+              (click)="anomaliesExpanded.set(!anomaliesExpanded())"
+              [attr.aria-expanded]="anomaliesExpanded()"
+              aria-controls="anomalies-list"
+            >
               <lucide-icon
                 [img]="icons.AlertTriangle"
                 [size]="16"
               ></lucide-icon>
-              {{ f.anomalies.length }} catégorie{{
-                f.anomalies.length > 1 ? 's' : ''
-              }}
-              en hausse · {{ topAnomalyLabel(f) }} +{{
-                f.anomalies[0].deltaPct
-              }}&#8201;%
-            </div>
+              <span class="anomalies-summary">
+                {{ f.anomalies.length }} catégorie{{
+                  f.anomalies.length > 1 ? 's' : ''
+                }}
+                en hausse · {{ topAnomalyLabel(f) }} +{{
+                  f.anomalies[0].deltaPct
+                }}&#8201;%
+              </span>
+              <lucide-icon
+                class="anomalies-chevron"
+                [class.open]="anomaliesExpanded()"
+                [img]="icons.ChevronDown"
+                [size]="16"
+              ></lucide-icon>
+            </button>
+            @if (anomaliesExpanded()) {
+              <ul class="anomalies-list" id="anomalies-list">
+                @for (a of f.anomalies; track a.category) {
+                  <li class="anomaly-item">
+                    <span class="anomaly-cat">{{ a.category }}</span>
+                    <span class="anomaly-detail">{{ anomalyDetail(a) }}</span>
+                    <span class="anomaly-pct">+{{ a.deltaPct }}&#8201;%</span>
+                  </li>
+                }
+              </ul>
+            }
           }
         </div>
       }
@@ -982,11 +1008,70 @@ interface MonthBar {
       align-items: center;
       gap: 8px;
       font-size: 13px;
+      font-family: var(--font-sans);
+      text-align: left;
       color: var(--danger);
       background: rgba(217, 45, 32, 0.08);
       border: 0.5px solid rgba(217, 45, 32, 0.25);
       border-radius: var(--radius-md);
       padding: 10px 14px;
+      cursor: pointer;
+      transition: background var(--dur-fast) var(--ease);
+    }
+    .forecast-anomalies:hover {
+      background: rgba(217, 45, 32, 0.14);
+    }
+    .anomalies-chevron {
+      transition: transform var(--dur-fast) var(--ease);
+      flex-shrink: 0;
+    }
+    .anomalies-chevron.open {
+      transform: rotate(180deg);
+    }
+    .anomalies-list {
+      flex-basis: 100%;
+      width: 100%;
+      list-style: none;
+      margin: 4px 0 0;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      background: rgba(217, 45, 32, 0.06);
+      border: 0.5px solid rgba(217, 45, 32, 0.2);
+      border-radius: var(--radius-md);
+    }
+    .anomaly-item {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .anomaly-cat {
+      font-weight: 600;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .anomaly-detail {
+      flex: 1;
+      min-width: 0;
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    .anomaly-pct {
+      min-width: 56px;
+      text-align: right;
+      font-weight: 600;
+      color: var(--danger);
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 480px) {
+      .anomaly-detail {
+        flex-basis: 100%;
+        text-align: left;
+        order: 3;
+      }
     }
 
     @media (max-width: 1024px) {
@@ -1035,6 +1120,7 @@ export class DashboardPageComponent {
     ArrowRight: LucideIconData;
     Check: LucideIconData;
     AlertTriangle: LucideIconData;
+    ChevronDown: LucideIconData;
   } = {
     Plus,
     ChevronRight,
@@ -1043,6 +1129,7 @@ export class DashboardPageComponent {
     ArrowRight,
     Check,
     AlertTriangle,
+    ChevronDown,
   };
 
   readonly firstName = this.storage.getFirstName() ?? 'toi';
@@ -1060,6 +1147,7 @@ export class DashboardPageComponent {
   readonly totalSaved = signal(0);
   readonly accountsBalance = signal(0);
   readonly forecast = signal<PredictionResponse | null>(null);
+  readonly anomaliesExpanded = signal(false);
 
   readonly forecastValue = computed(() =>
     eur(this.forecast()?.predictedBalance ?? null, { plus: true }),
@@ -1190,6 +1278,11 @@ export class DashboardPageComponent {
 
   saved(g: Goal): string {
     return eur(g.currentAmount);
+  }
+
+  /** Détail d'une anomalie : « 48 € vs 12 € habituels » (chiffres calculés back, pas le LLM). */
+  anomalyDetail(a: Anomaly): string {
+    return `${eur(a.current)} vs ${eur(a.average)} habituels`;
   }
 
   target(g: Goal): string {
