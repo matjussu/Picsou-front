@@ -591,7 +591,7 @@ type PeriodPreset = 'month' | '30d';
       border-bottom: none;
     }
     .col-icon {
-      width: 38px;
+      width: 56px;
     }
     .col-amount {
       width: 118px;
@@ -799,6 +799,9 @@ type PeriodPreset = 'month' | '30d';
       .txn-table td:nth-child(3) {
         width: 104px;
       }
+      .col-icon {
+        width: 48px;
+      }
       .col-amount {
         width: 92px;
       }
@@ -842,6 +845,9 @@ export class TransactionsPageComponent {
     Pencil,
     Trash2,
   };
+
+  /** Taille de page large : la liste se veut exhaustive (pas de pagination UI). */
+  private static readonly PAGE_SIZE = 500;
 
   readonly filters = signal<TransactionFilters>({});
   readonly query = signal<string>('');
@@ -941,7 +947,15 @@ export class TransactionsPageComponent {
   /** Re-fetch backend à chaque changement de filtre (jamais de filtrage client). */
   private fetch(): void {
     this.loading.set(true);
-    this.service.search(this.filters()).subscribe({
+    // Défauts : tri date-desc (cohérent avec le widget Dashboard) + taille large
+    // pour tout référencer. Sans ça, le backend tombe sur page=0/size=20 sans tri
+    // → des transactions récentes restaient invisibles ici. Les filtres user priment.
+    const params = {
+      sort: 'date,desc',
+      size: TransactionsPageComponent.PAGE_SIZE,
+      ...this.filters(),
+    };
+    this.service.search(params).subscribe({
       next: (txns) => {
         this.transactions.set(txns);
         this.loading.set(false);

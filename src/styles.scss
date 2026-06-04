@@ -77,3 +77,54 @@ body {
     border-radius: 0;
   }
 }
+
+/* Overlays Material (menus, selects, dialogs) rendus hors encapsulation par le CDK
+   → stylés en global via leur panelClass. On applique les tokens du design system
+   (--shadow-pop est explicitement réservé aux modales/menus). */
+
+/* Menus déroulants — chips de filtre Transactions (panelClass 'picsou-menu') */
+.picsou-menu.mat-mdc-menu-panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  min-width: 184px;
+}
+.picsou-menu .mat-mdc-menu-content {
+  padding: 6px;
+}
+.picsou-menu .mat-mdc-menu-item {
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.picsou-menu .mat-mdc-menu-item:hover:not([disabled]) {
+  background: var(--surface-raised);
+}
+
+/* Panneaux de select — catégorie/compte du dialog (panelClass 'picsou-select-panel') */
+.picsou-select-panel.mat-mdc-select-panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+}
+.picsou-select-panel .mat-mdc-option {
+  min-height: 42px;
+  border-radius: var(--radius-sm);
+}
+.picsou-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.picsou-select-panel .mat-mdc-option.mat-mdc-option-active {
+  background: var(--surface-raised);
+}
+
+/* Dialog ajout/édition de transaction (panelClass 'picsou-dialog') */
+.picsou-dialog .mat-mdc-dialog-surface {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}

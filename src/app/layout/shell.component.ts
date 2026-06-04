@@ -147,8 +147,8 @@ interface NavItem {
       padding: var(--space-2) var(--space-2) var(--space-6);
     }
     .logo-mark {
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       flex-shrink: 0;
       display: block;
