@@ -6,18 +6,20 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   Calendar,
   ChevronDown,
-  CreditCard,
   Landmark,
   LucideAngularModule,
   LucideIconData,
+  Pencil,
   Plus,
   Receipt,
   Search,
   SlidersHorizontal,
+  Trash2,
   X,
 } from 'lucide-angular';
 
 import { AddTransactionDialogComponent } from './add-transaction-dialog/add-transaction-dialog.component';
+import { categoryColor, categoryIcon } from './util/category-visual';
 import { AccountService } from './data/account.service';
 import { CategoryService } from './data/category.service';
 import {
@@ -254,20 +256,30 @@ type PeriodPreset = 'month' | '30d';
                 <th>Compte</th>
                 <th>Date</th>
                 <th class="col-amount">Montant</th>
+                <th class="col-actions"></th>
               </tr>
             </thead>
             <tbody>
               @for (t of transactions(); track t.id) {
                 <tr>
                   <td class="col-icon">
-                    <span class="cat-icon">
+                    <span
+                      class="cat-icon"
+                      [style.color]="categoryColor(t).fg"
+                      [style.background]="categoryColor(t).bg"
+                      [style.border-color]="categoryColor(t).bg"
+                    >
                       <lucide-icon [img]="categoryIcon(t)" [size]="18"></lucide-icon>
                     </span>
                   </td>
                   <td class="desc">{{ t.description }}</td>
                   <td>
                     @if (categoryName(t.categoryId)) {
-                      <span class="pill">{{ categoryName(t.categoryId) }}</span>
+                      <span
+                        class="pill"
+                        [style.color]="categoryColor(t).fg"
+                        [style.border-color]="categoryColor(t).bg"
+                      >{{ categoryName(t.categoryId) }}</span>
                     } @else {
                       <span class="muted">—</span>
                     }
@@ -277,6 +289,26 @@ type PeriodPreset = 'month' | '30d';
                   <td class="col-amount">
                     <span class="amount" [class.pos]="t.type === 'income'">
                       {{ formatAmount(t) }}
+                    </span>
+                  </td>
+                  <td class="col-actions">
+                    <span class="row-actions">
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        (click)="openEdit(t)"
+                        aria-label="Modifier la transaction"
+                      >
+                        <lucide-icon [img]="icons.Pencil" [size]="16"></lucide-icon>
+                      </button>
+                      <button
+                        type="button"
+                        class="icon-btn danger"
+                        (click)="deleteTxn(t)"
+                        aria-label="Supprimer la transaction"
+                      >
+                        <lucide-icon [img]="icons.Trash2" [size]="16"></lucide-icon>
+                      </button>
                     </span>
                   </td>
                 </tr>
@@ -565,6 +597,48 @@ type PeriodPreset = 'month' | '30d';
       width: 118px;
       text-align: right;
     }
+    .col-actions {
+      width: 76px;
+      text-align: right;
+    }
+
+    /* Actions de ligne — visibles au survol (toujours visibles en mobile) */
+    .row-actions {
+      display: inline-flex;
+      gap: 2px;
+      justify-content: flex-end;
+      opacity: 0;
+      transition: opacity var(--dur-fast) var(--ease);
+    }
+    tr:hover .row-actions,
+    tr:focus-within .row-actions {
+      opacity: 1;
+    }
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid transparent;
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition:
+        color var(--dur-fast) var(--ease),
+        background var(--dur-fast) var(--ease),
+        border-color var(--dur-fast) var(--ease);
+    }
+    .icon-btn:hover {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--border);
+    }
+    .icon-btn.danger:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
     .txn-table th:nth-child(3),
     .txn-table td:nth-child(3) {
       width: 132px;
@@ -728,6 +802,13 @@ type PeriodPreset = 'month' | '30d';
       .col-amount {
         width: 92px;
       }
+      .col-actions {
+        width: 68px;
+      }
+      /* Pas de hover en tactile → actions toujours visibles */
+      .row-actions {
+        opacity: 1;
+      }
     }
   `,
 })
@@ -747,6 +828,8 @@ export class TransactionsPageComponent {
     SlidersHorizontal: LucideIconData;
     X: LucideIconData;
     Receipt: LucideIconData;
+    Pencil: LucideIconData;
+    Trash2: LucideIconData;
   } = {
     Plus,
     Search,
@@ -756,6 +839,8 @@ export class TransactionsPageComponent {
     SlidersHorizontal,
     X,
     Receipt,
+    Pencil,
+    Trash2,
   };
 
   readonly filters = signal<TransactionFilters>({});
@@ -768,10 +853,6 @@ export class TransactionsPageComponent {
   readonly showAdvanced = signal(false);
 
   private queryDebounce?: ReturnType<typeof setTimeout>;
-
-  private readonly catIcons: Record<string, LucideIconData> = {
-    home: Landmark,
-  };
 
   readonly received = computed(() =>
     eur(
@@ -965,6 +1046,59 @@ export class TransactionsPageComponent {
     });
   }
 
+  /** Ouvre le dialog en mode édition (form pré-rempli). */
+  openEdit(t: Transaction): void {
+    const ref = this.dialog.open(AddTransactionDialogComponent, {
+      width: '520px',
+      maxWidth: '94vw',
+      autoFocus: false,
+      panelClass: 'picsou-dialog',
+      data: { transaction: t },
+    });
+    ref.afterClosed().subscribe((updated?: Transaction) => {
+      if (updated) {
+        this.fetch();
+      }
+    });
+  }
+
+  /**
+   * Suppression optimiste + snackbar « Annuler ».
+   * NB : l'undo recrée la transaction (nouvel ID, source repassée à `manual`).
+   */
+  deleteTxn(t: Transaction): void {
+    this.service.delete(t.id).subscribe({
+      next: () => {
+        this.transactions.update((list) => list.filter((x) => x.id !== t.id));
+        const ref = this.snack.open('Transaction supprimée', 'Annuler', {
+          duration: 5000,
+        });
+        ref.onAction().subscribe(() => {
+          this.service
+            .create({
+              amount: t.amount,
+              date: t.date,
+              description: t.description,
+              type: t.type,
+              categoryId: t.categoryId,
+              accountId: t.accountId,
+            })
+            .subscribe({
+              next: () => this.fetch(),
+              error: () =>
+                this.snack.open('Annulation impossible.', 'OK', {
+                  duration: 4000,
+                }),
+            });
+        });
+      },
+      error: () =>
+        this.snack.open('Suppression impossible. Réessaie.', 'OK', {
+          duration: 4000,
+        }),
+    });
+  }
+
   // ── Helpers d'affichage ──
   categoryName(id: string | null): string | null {
     if (!id) {
@@ -982,7 +1116,13 @@ export class TransactionsPageComponent {
 
   categoryIcon(t: Transaction): LucideIconData {
     const cat = this.categories().find((c) => c.id === t.categoryId);
-    return (cat?.iconKey && this.catIcons[cat.iconKey]) || CreditCard;
+    return categoryIcon(cat?.iconKey ?? null);
+  }
+
+  /** Couleur d'accent + fond teinté de la catégorie d'une transaction. */
+  categoryColor(t: Transaction): { fg: string; bg: string } {
+    const cat = this.categories().find((c) => c.id === t.categoryId);
+    return categoryColor(cat?.colorKey ?? null);
   }
 
   formatAmount(t: Transaction): string {

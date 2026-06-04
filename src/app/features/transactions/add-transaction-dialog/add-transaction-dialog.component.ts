@@ -3,7 +3,11 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -29,8 +33,10 @@ import {
   CreateTransactionRequest,
   Transaction,
   TransactionType,
+  UpdateTransactionRequest,
 } from '../data/transaction.models';
 import { TransactionService } from '../data/transaction.service';
+import { categoryIcon } from '../util/category-visual';
 
 /**
  * Modal « Nouvelle transaction » (handoff §6).
@@ -55,9 +61,15 @@ import { TransactionService } from '../data/transaction.service';
     <div class="dialog">
       <header class="head">
         <div>
-          <h2 class="title">Nouvelle transaction</h2>
+          <h2 class="title">
+            {{ editing ? 'Modifier la transaction' : 'Nouvelle transaction' }}
+          </h2>
           <p class="subtitle">
-            Renseigne une description et Picsou suggère la catégorie.
+            {{
+              editing
+                ? 'Ajuste les champs puis enregistre tes modifications.'
+                : 'Renseigne une description et Picsou suggère la catégorie.'
+            }}
           </p>
         </div>
         <button
@@ -71,18 +83,20 @@ import { TransactionService } from '../data/transaction.service';
       </header>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="body">
-        <!-- Scanner un reçu (OCR vision) → pré-remplit le formulaire -->
-        <label class="scan-btn" [class.busy]="scanning()">
-          <lucide-icon [img]="icons.ScanLine" [size]="18"></lucide-icon>
-          {{ scanning() ? 'Analyse du reçu…' : 'Scanner un reçu' }}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            (change)="scanReceipt($event)"
-            [disabled]="scanning()"
-            hidden
-          />
-        </label>
+        <!-- Scanner un reçu (OCR vision) → pré-remplit le formulaire (création seule) -->
+        @if (!editing) {
+          <label class="scan-btn" [class.busy]="scanning()">
+            <lucide-icon [img]="icons.ScanLine" [size]="18"></lucide-icon>
+            {{ scanning() ? 'Analyse du reçu…' : 'Scanner un reçu' }}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="scanReceipt($event)"
+              [disabled]="scanning()"
+              hidden
+            />
+          </label>
+        }
 
         <!-- Segmented Dépense / Revenu -->
         <mat-button-toggle-group
@@ -164,7 +178,14 @@ import { TransactionService } from '../data/transaction.service';
               >
                 <mat-option [value]="null">Aucune</mat-option>
                 @for (cat of categories(); track cat.id) {
-                  <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                  <mat-option [value]="cat.id">
+                    <lucide-icon
+                      [img]="catIcon(cat.iconKey)"
+                      [size]="16"
+                      class="opt-icon"
+                    ></lucide-icon>
+                    {{ cat.name }}
+                  </mat-option>
                 }
               </mat-select>
             </mat-form-field>
@@ -188,33 +209,35 @@ import { TransactionService } from '../data/transaction.service';
           </div>
         </div>
 
-        <!-- Compte -->
-        <div class="field">
-          <label class="label" for="account">Compte</label>
-          <mat-form-field
-            appearance="outline"
-            class="picsou-select"
-            subscriptSizing="dynamic"
-          >
-            <lucide-icon
-              matPrefix
-              [img]="icons.Landmark"
-              [size]="16"
-              class="prefix"
-            ></lucide-icon>
-            <mat-select
-              id="account"
-              formControlName="accountId"
-              placeholder="Choisir un compte"
-              panelClass="picsou-select-panel"
+        <!-- Compte (création seule : non modifiable côté API) -->
+        @if (!editing) {
+          <div class="field">
+            <label class="label" for="account">Compte</label>
+            <mat-form-field
+              appearance="outline"
+              class="picsou-select"
+              subscriptSizing="dynamic"
             >
-              <mat-option [value]="null">Aucun</mat-option>
-              @for (acc of accounts(); track acc.id) {
-                <mat-option [value]="acc.id">{{ acc.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
+              <lucide-icon
+                matPrefix
+                [img]="icons.Landmark"
+                [size]="16"
+                class="prefix"
+              ></lucide-icon>
+              <mat-select
+                id="account"
+                formControlName="accountId"
+                placeholder="Choisir un compte"
+                panelClass="picsou-select-panel"
+              >
+                <mat-option [value]="null">Aucun</mat-option>
+                @for (acc of accounts(); track acc.id) {
+                  <mat-option [value]="acc.id">{{ acc.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
 
         <footer class="actions">
           <button type="button" class="btn ghost" (click)="cancel()">
@@ -222,7 +245,7 @@ import { TransactionService } from '../data/transaction.service';
           </button>
           <button type="submit" class="btn primary" [disabled]="submitting()">
             <lucide-icon [img]="icons.Check" [size]="18"></lucide-icon>
-            {{ submitting() ? 'Ajout…' : 'Ajouter la transaction' }}
+            {{ submitLabel() }}
           </button>
         </footer>
       </form>
@@ -445,6 +468,14 @@ import { TransactionService } from '../data/transaction.service';
       cursor: pointer;
     }
 
+    /* Icône devant chaque catégorie dans le menu déroulant */
+    .opt-icon {
+      display: inline-flex;
+      vertical-align: middle;
+      margin-right: 8px;
+      color: var(--text-secondary);
+    }
+
     /* Material select restyled */
     .picsou-select {
       width: 100%;
@@ -543,6 +574,14 @@ export class AddTransactionDialogComponent {
     MatDialogRef<AddTransactionDialogComponent, Transaction>,
   );
   private readonly snack = inject(MatSnackBar);
+  /** Transaction à éditer (null → mode création). */
+  private readonly data = inject<{ transaction?: Transaction } | null>(
+    MAT_DIALOG_DATA,
+    { optional: true },
+  );
+
+  /** true → édition d'une transaction existante ; false → création. */
+  readonly editing = !!this.data?.transaction;
 
   readonly icons: {
     X: LucideIconData;
@@ -588,6 +627,32 @@ export class AddTransactionDialogComponent {
       next: (accs) => this.accounts.set(accs),
       error: () => this.accounts.set([]),
     });
+
+    // Mode édition : pré-remplir le formulaire depuis la transaction existante.
+    const t = this.data?.transaction;
+    if (t) {
+      this.form.patchValue({
+        type: t.type,
+        amount: t.amount,
+        description: t.description,
+        categoryId: t.categoryId,
+        date: t.date,
+        accountId: t.accountId,
+      });
+    }
+  }
+
+  /** Libellé du bouton principal selon le mode + état d'envoi. */
+  submitLabel(): string {
+    if (this.editing) {
+      return this.submitting() ? 'Enregistrement…' : 'Enregistrer';
+    }
+    return this.submitting() ? 'Ajout…' : 'Ajouter la transaction';
+  }
+
+  /** Icône lucide d'une catégorie (menu déroulant). */
+  catIcon(iconKey: string | null): LucideIconData {
+    return categoryIcon(iconKey);
   }
 
   /** Scan d'un reçu (vision IA) → pré-remplit montant/description/date ; l'user confirme ensuite. */
@@ -639,6 +704,32 @@ export class AddTransactionDialogComponent {
       return;
     }
     const v = this.form.getRawValue();
+    this.submitting.set(true);
+
+    const editId = this.data?.transaction?.id;
+    if (editId) {
+      // Édition : PATCH partiel (accountId non éditable côté API).
+      const req: UpdateTransactionRequest = {
+        amount: Number(v.amount),
+        date: v.date,
+        description: v.description.trim(),
+        type: v.type,
+        categoryId: v.categoryId,
+      };
+      this.transactions.update(editId, req).subscribe({
+        next: (updated) => this.dialogRef.close(updated),
+        error: () => {
+          this.submitting.set(false);
+          this.snack.open(
+            'Impossible d’enregistrer la transaction. Réessaie.',
+            'OK',
+            { duration: 4000 },
+          );
+        },
+      });
+      return;
+    }
+
     const req: CreateTransactionRequest = {
       amount: Number(v.amount),
       date: v.date,
@@ -647,7 +738,6 @@ export class AddTransactionDialogComponent {
       categoryId: v.categoryId,
       accountId: v.accountId,
     };
-    this.submitting.set(true);
     this.transactions.create(req).subscribe({
       next: (created) => this.dialogRef.close(created),
       error: () => {
