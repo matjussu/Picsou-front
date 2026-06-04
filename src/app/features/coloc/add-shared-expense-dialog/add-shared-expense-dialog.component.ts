@@ -69,28 +69,30 @@ export interface AddSharedExpenseData {
         </button>
       </header>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="body">
-        <!-- Scanner un ticket (OCR vision) → ouvre la caméra du téléphone et
-             pré-remplit montant + description ; l'user vérifie puis valide. -->
-        <label class="scan-btn" [class.busy]="scanning()">
-          <lucide-icon [img]="icons.ScanLine" [size]="18"></lucide-icon>
-          {{
-            scanning()
-              ? 'Lecture du ticket… (jusqu’à ~1 min au 1er scan)'
-              : 'Scanner un ticket'
-          }}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            (change)="scanReceipt($event)"
-            [disabled]="scanning()"
-            hidden
-          />
-        </label>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+        <div class="scroll">
+          <!-- Scanner un ticket (OCR vision) → ouvre la caméra du téléphone et
+               pré-remplit montant + description ; l'user vérifie puis valide. -->
+          <label class="scan-btn" [class.busy]="scanning()">
+            @if (scanning()) {
+              <span class="spinner" aria-hidden="true"></span>
+              Lecture du ticket… (jusqu’à ~1 min au 1er scan)
+            } @else {
+              <lucide-icon [img]="icons.ScanLine" [size]="18"></lucide-icon>
+              Scanner un ticket
+            }
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              (change)="scanReceipt($event)"
+              [disabled]="scanning()"
+              hidden
+            />
+          </label>
 
-        <div class="field">
-          <label class="label" for="desc">Description</label>
+          <div class="field">
+            <label class="label" for="desc">Description</label>
           <input
             id="desc"
             class="text-box"
@@ -235,6 +237,8 @@ export interface AddSharedExpenseData {
           }
         </div>
 
+        </div>
+
         <footer class="actions">
           <button type="button" class="btn ghost" (click)="cancel()">
             Annuler
@@ -248,20 +252,34 @@ export interface AddSharedExpenseData {
     </div>
   `,
   styles: `
+    /* Le dialog est borné en hauteur et scrolle en interne (.scroll) : header et footer
+       (bouton valider) restent toujours visibles, atteignables au pouce sur mobile. */
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-height: 92dvh;
     }
     .dialog {
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      flex: 1;
+      background: var(--surface);
     }
     .head {
+      flex-shrink: 0;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-4);
       padding: var(--space-6) var(--space-6) var(--space-5);
       border-bottom: 0.5px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      :host {
+        max-height: 100dvh;
+      }
     }
     .title {
       margin: 0;
@@ -293,7 +311,17 @@ export interface AddSharedExpenseData {
       color: var(--text);
       border-color: var(--border-strong);
     }
-    .body {
+    .form {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+    }
+    .scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: var(--space-6);
       display: flex;
       flex-direction: column;
@@ -319,8 +347,27 @@ export interface AddSharedExpenseData {
       border-color: var(--accent);
     }
     .scan-btn.busy {
-      opacity: 0.6;
       cursor: default;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      border-top-color: var(--accent);
+      border-radius: var(--radius-pill);
+      display: inline-block;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner {
+        animation: none;
+      }
     }
     .field {
       display: flex;
@@ -561,9 +608,13 @@ export interface AddSharedExpenseData {
     }
 
     .actions {
+      flex-shrink: 0;
       display: flex;
       gap: 10px;
-      margin-top: 4px;
+      padding: var(--space-4) var(--space-6);
+      padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+      border-top: 0.5px solid var(--border);
+      background: var(--surface);
     }
     .btn {
       display: inline-flex;
