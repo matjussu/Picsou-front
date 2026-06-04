@@ -29,6 +29,20 @@ export interface CreateTransactionRequest {
   note?: string | null;
 }
 
+/**
+ * Corps PATCH /api/transactions/{id} (UpdateTransactionRequest).
+ * Mise à jour partielle : seuls les champs fournis sont modifiés.
+ * NB : le backend ne porte pas `accountId` en update (champ non éditable ici).
+ */
+export interface UpdateTransactionRequest {
+  amount?: number;
+  date?: string;
+  description?: string;
+  type?: TransactionType;
+  categoryId?: string | null;
+  note?: string | null;
+}
+
 /** Réponse GET /api/categories (CategoryResponse). */
 export interface Category {
   id: string;

@@ -3,7 +3,12 @@ import { Inject, Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from '../../../core/api/api.config';
-import { CreateTransactionRequest, Transaction, TransactionFilters } from './transaction.models';
+import {
+  CreateTransactionRequest,
+  Transaction,
+  TransactionFilters,
+  UpdateTransactionRequest,
+} from './transaction.models';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
@@ -38,6 +43,11 @@ export class TransactionService {
 
   create(req: CreateTransactionRequest): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.baseUrl}/transactions`, req);
+  }
+
+  /** Mise à jour partielle (PATCH) — voir UpdateTransactionRequest. */
+  update(id: string, req: UpdateTransactionRequest): Observable<Transaction> {
+    return this.http.patch<Transaction>(`${this.baseUrl}/transactions/${id}`, req);
   }
 
   delete(id: string): Observable<void> {

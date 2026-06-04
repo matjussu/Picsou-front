@@ -39,7 +39,11 @@ interface NavItem {
     <div class="layout">
       <header class="mobile-top">
         <div class="brand">
-          <span class="coin">P</span>
+          <img
+            src="/assets/branding/logo-picsou.svg"
+            alt=""
+            class="logo-mark"
+          />
           <span class="wordmark font-display">PICSOU</span>
         </div>
         <button
@@ -54,7 +58,11 @@ interface NavItem {
 
       <aside class="sidebar">
         <div class="brand">
-          <span class="coin">P</span>
+          <img
+            src="/assets/branding/logo-picsou.svg"
+            alt=""
+            class="logo-mark"
+          />
           <span class="wordmark font-display">PICSOU</span>
         </div>
 
@@ -138,16 +146,12 @@ interface NavItem {
       gap: var(--space-3);
       padding: var(--space-2) var(--space-2) var(--space-6);
     }
-    .coin {
+    .logo-mark {
       width: 34px;
       height: 34px;
-      border-radius: var(--radius-pill);
-      background: var(--accent);
-      color: var(--on-accent);
-      font-family: var(--font-display);
-      font-size: 22px;
-      display: grid;
-      place-items: center;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
     }
     .wordmark {
       font-size: 25px;
