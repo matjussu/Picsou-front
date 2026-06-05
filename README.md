@@ -1,59 +1,53 @@
-# PicsouTemp
+# Picsou — Front
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.26.
+![Angular](https://img.shields.io/badge/Angular-19-DD0031?logo=angular&logoColor=white)
+![Angular Material](https://img.shields.io/badge/Angular%20Material-19-757575?logo=angular&logoColor=white)
+![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)
 
-## Development server
+Application web de gestion de budget personnel pensée pour les **17–26 ans** : tous tes comptes réunis, les dépenses de coloc réparties en temps réel, et une IA qui t'explique ton mois en français clair.
 
-To start a local development server, run:
+> Projet final M1 MIAGE — Université Paris Dauphine-PSL, 2026.
 
-```bash
-ng serve
-```
+## 🔗 Accès
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Application en ligne** : https://picsou-front.vercel.app
+- **Accès démo (jury)** : sur l'écran de connexion, cliquer sur **« Voir la démo »** → connexion automatique à un compte de démonstration pré-peuplé (aucune donnée réelle, aucun identifiant à saisir).
+  > ⚠️ Le backend est hébergé sur un plan gratuit (Render) qui se met en veille après inactivité : le **premier** chargement de la démo peut prendre **~1 min** (réveil du serveur).
+- **API / backend** : [Picsou_back](https://github.com/matjussu/Picsou_back)
 
-## Code scaffolding
+## ✨ Fonctionnalités
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- **Dashboard unifié** — solde disponible, projection de fin de mois, anomalies détectées, répartition par catégorie.
+- **Transactions** — historique catégorisé, multi-comptes.
+- **Coloc en temps réel** — dépenses partagées, répartition automatique, settle-up, synchronisation live (WebSocket / STOMP).
+- **Objectifs** — épargne et suivi.
+- **Insights IA** — résumé mensuel des dépenses et questions-réponses libres, en français.
+- **Open banking (mock)** — agrégation de comptes.
+- **Onboarding** et paramètres utilisateur.
 
-```bash
-ng generate component component-name
-```
+## 🛠 Stack
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- **Angular 19** + **Angular Material** + **Angular CDK**
+- **ApexCharts** (`ng-apexcharts`) pour la visualisation
+- **STOMP over SockJS** (`@stomp/stompjs`) pour le temps réel coloc
+- **lucide-angular** (icônes) · **RxJS**
+- Déploiement **Vercel**
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 🚀 Lancer en local
 
 ```bash
-ng test
+npm install
+npm start        # ng serve → http://localhost:4200
 ```
 
-## Running end-to-end tests
+Par défaut, le front consomme l'API de production (`https://picsou-back.onrender.com/api`). Pour cibler un backend local, modifie l'URL de base de l'API dans la configuration d'environnement.
 
-For end-to-end (e2e) testing, run:
+## 📦 Build
 
 ```bash
-ng e2e
+npm run build    # artefacts dans dist/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+*Binôme repo : [Picsou_back](https://github.com/matjussu/Picsou_back) — API Spring Boot.*
